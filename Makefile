@@ -1,4 +1,4 @@
-PROJECT=ezg::calculated
+PROJECT=icepay::svc
 PREFIX=$(shell pwd)
 VERSION=$(shell git describe --match 'v[0-9]*'  --always)
 DEFAULT_BRANCH=$(shell git symbolic-ref --short -q HEAD)

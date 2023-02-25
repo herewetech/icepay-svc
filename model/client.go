@@ -13,6 +13,19 @@
 
 package model
 
+import "time"
+
+type Client struct {
+	ID    string `bun:"id,pk" json:"id"`
+	Name  string `bun:"name,notnull" json:"name"`
+	Email string `bun:"email,notnull" json:"email"`
+	Phone string `bun:"phone" json:"phone"`
+
+	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt time.Time `bun:"deleted_at,soft_delete,nullzero" json:"-"`
+}
+
 /*
  * Local variables:
  * tab-width: 4
