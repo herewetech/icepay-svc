@@ -6,7 +6,7 @@
 
 /**
  * @file client.go
- * @package handler
+ * @package response
  * @author Dr.NP <np@herewe.tech>
  * @since 02/26/2023
  */

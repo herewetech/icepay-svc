@@ -31,7 +31,10 @@ func actionServe(c *cli.Context) error {
 		}
 	*/
 	handler.InitMisc()
-	//handler.InitCalc()
+	handler.InitClient()
+	handler.InitTenant()
+	handler.InitCreditCard()
+	handler.InitPayment()
 
 	return runtime.Serve()
 }

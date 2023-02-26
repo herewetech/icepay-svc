@@ -5,13 +5,21 @@
  */
 
 /**
- * @file payment.go
- * @package request
+ * @file auth.go
+ * @package service
  * @author Dr.NP <np@herewe.tech>
- * @since 02/26/2023
+ * @since 02/25/2023
  */
 
-package request
+package service
+
+type Auth struct{}
+
+func NewAuth() *Auth {
+	s := new(Auth)
+
+	return s
+}
 
 /*
  * Local variables:

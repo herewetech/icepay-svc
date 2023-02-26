@@ -6,12 +6,17 @@
 
 /**
  * @file client.go
- * @package handler
+ * @package request
  * @author Dr.NP <np@herewe.tech>
  * @since 02/26/2023
  */
 
 package request
+
+type TenantPostToken struct {
+	Email    string `json:"email" xml:"email"`
+	Password string `json:"password" xml:"password"`
+}
 
 /*
  * Local variables:

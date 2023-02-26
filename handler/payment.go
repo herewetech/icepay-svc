@@ -13,6 +13,14 @@
 
 package handler
 
+type Payment struct{}
+
+func InitPayment() *Payment {
+	h := new(Payment)
+
+	return h
+}
+
 /*
  * Local variables:
  * tab-width: 4

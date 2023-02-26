@@ -14,12 +14,17 @@
 package handler
 
 import (
+	"icepay-svc/handler/request"
 	"icepay-svc/runtime"
+	"icepay-svc/service"
+	"icepay-svc/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type Client struct{}
+type Client struct {
+	svcAuth *service.Auth
+}
 
 func InitClient() *Client {
 	h := new(Client)
@@ -30,6 +35,8 @@ func InitClient() *Client {
 	clientG.Put("/password", h.changePassword).Name("ClientPutPassword")
 	clientG.Get("/credential", h.credential).Name("ClientGetCredential")
 
+	h.svcAuth = service.NewAuth()
+
 	return h
 }
 
@@ -37,6 +44,21 @@ func InitClient() *Client {
 
 // token: Get JWT token
 func (h *Client) token(c *fiber.Ctx) error {
+	var req request.ClientPostToken
+	err := c.BodyParser(&req)
+	if err != nil {
+		runtime.Logger.Warnf("parse request body failed: %s", err)
+
+		return err
+	}
+
+	if req.Email == "" || req.Password == "" {
+		resp := utils.WrapResponse(nil)
+		resp.Status = fiber.StatusBadRequest
+
+		return c.Status(fiber.StatusBadRequest).JSON(resp)
+	}
+
 	return nil
 }
 

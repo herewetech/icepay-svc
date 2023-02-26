@@ -5,13 +5,13 @@
  */
 
 /**
- * @file payment.go
- * @package request
+ * @file credit_card.go
+ * @package response
  * @author Dr.NP <np@herewe.tech>
  * @since 02/26/2023
  */
 
-package request
+package response
 
 /*
  * Local variables:

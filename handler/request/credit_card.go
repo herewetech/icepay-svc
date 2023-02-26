@@ -5,7 +5,7 @@
  */
 
 /**
- * @file payment.go
+ * @file credit_card.go
  * @package request
  * @author Dr.NP <np@herewe.tech>
  * @since 02/26/2023
