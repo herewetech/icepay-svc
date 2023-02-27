@@ -13,6 +13,28 @@
 
 package response
 
+import "time"
+
+/* {{{ [Response codes && messages] */
+const (
+	CodeTenantDoesNotExists = 11401001
+	CodeTenantWrongPassword = 11401002
+	CodeTenantGetError      = 11500001
+)
+
+const (
+	MsgTenantDoesNotExists = "Tenant does not exists"
+	MsgTenantWrongPassword = "Wrong tenant password"
+	MsgTenantGetError      = "Get tenant from database error"
+)
+
+/* }}} */
+
+type TenantPostToken struct {
+	Token  string    `json:"token" xml:"token"`
+	Expiry time.Time `json:"expiry" xml:"exipry"`
+}
+
 /*
  * Local variables:
  * tab-width: 4

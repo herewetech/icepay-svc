@@ -13,16 +13,29 @@
 
 package response
 
-/* {{{ [Response codes] */
+import "time"
+
+/* {{{ [Response codes && messages] */
 const (
 	CodeInvalidEmailOrPassword = 10400001
+	CodeClientDoesNotExists    = 10401001
+	CodeClientWrongPassword    = 10401002
+	CodeClientGetError         = 10500001
 )
 
 const (
 	MsgInvalidEmailOrPassword = "Invalid email or password"
+	MsgClientDoesNotExists    = "Client does not exists"
+	MsgClientWrongPassword    = "Wrong client password"
+	MsgClientGetError         = "Get client from database error"
 )
 
 /* }}} */
+
+type ClientPostToken struct {
+	Token  string    `json:"token" xml:"token"`
+	Expiry time.Time `json:"expiry" xml:"exipry"`
+}
 
 /*
  * Local variables:

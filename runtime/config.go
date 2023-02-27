@@ -32,6 +32,10 @@ type mainConfig struct {
 	Database struct {
 		DSN string `json:"dsn" mapstructure:"dsn"`
 	} `json:"database" mapstructure:"database"`
+	Auth struct {
+		JWTSecret string `json:"jwt_secret" mapstructure:"jwt_secret"`
+		JWTExpiry int64  `json:"jwt_expiry" mapstructure:"jwt_expiry"`
+	} `json:"auth" mapstructure:"auth"`
 	Debug bool `json:"debug" mapstructure:"debug"`
 }
 
@@ -41,6 +45,8 @@ var defaultConfigs = map[string]interface{}{
 	"http.listen_addr": ":9900",
 	"http.prefork":     false,
 	"database.dsn":     "postgres://icepay@localhost:5432/icepay?sslmode=disable",
+	"auth.jwt_secret":  "secret",
+	"auth.jwt_expiry":  1440,
 	"debug":            true,
 }
 

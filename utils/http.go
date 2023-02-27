@@ -13,7 +13,16 @@
 
 package utils
 
-import "time"
+import (
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+const (
+	CodeOK = 0
+	MsgOK  = "OK"
+)
 
 type Envelope struct {
 	Code      int         `json:"code"`
@@ -25,7 +34,10 @@ type Envelope struct {
 
 func WrapResponse(data interface{}) *Envelope {
 	e := &Envelope{
+		Code:      CodeOK,
+		Status:    fiber.StatusOK,
 		Timestamp: time.Now(),
+		Message:   MsgOK,
 		Data:      data,
 	}
 

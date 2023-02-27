@@ -6,17 +6,19 @@
 
 /**
  * @file client.go
- * @package request
+ * @package response
  * @author Dr.NP <np@herewe.tech>
- * @since 02/26/2023
+ * @since 02/27/2023
  */
 
-package request
+package response
 
-type ClientPostToken struct {
-	Email    string `json:"email" xml:"email"`
-	Password string `json:"password" xml:"password"`
-}
+/* {{{ [Response codes && messages] */
+const (
+	CodeAuthInternal = 20401500
+)
+
+/* }}} */
 
 /*
  * Local variables:

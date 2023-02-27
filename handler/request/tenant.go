@@ -13,7 +13,7 @@
 
 package request
 
-type ClientPostToken struct {
+type TenantPostToken struct {
 	Email    string `json:"email" xml:"email"`
 	Password string `json:"password" xml:"password"`
 }
