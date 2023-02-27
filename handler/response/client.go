@@ -13,6 +13,17 @@
 
 package response
 
+/* {{{ [Response codes] */
+const (
+	CodeInvalidEmailOrPassword = 10400001
+)
+
+const (
+	MsgInvalidEmailOrPassword = "Invalid email or password"
+)
+
+/* }}} */
+
 /*
  * Local variables:
  * tab-width: 4

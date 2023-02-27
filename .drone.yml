@@ -1,0 +1,41 @@
+kind: pipeline
+type: docker
+name: icepay::svc
+
+steps:
+  - name: build
+    image: golang:alpine
+    commands:
+      - "apk add make git"
+      - "make"
+
+  - name: docker
+    image: plugins/docker:latest
+    settings:
+      username:
+        from_secret: docker_registry_username_tencent
+      password:
+        from_secret: docker_registry_password_tencent
+      repo: useccr.ccs.tencentyun.com/icepay/svc
+      tags: latest
+      registry: useccrccr.ccs.tencentyun.com
+
+  - name: deploy
+    image: appleboy/drone-ssh:latest
+    settings:
+      host:
+        - 54np-us01.54np.com
+      username:
+        from_secret: ssh_username_us01
+      password:
+        from_secret: ssh_password_us01
+      port: 22
+      command_timeout: 5m
+      script:
+        - docker stack deploy --with-registry-auth --compose-file /data/shared/env/greencloud/swarm/prod/compose/icepay.yaml icepay
+        - docker pull useccr.ccs.tencentyun.com/icepay/svc:latest
+        - docker system prune --force
+
+trigger:
+  event:
+    - tag

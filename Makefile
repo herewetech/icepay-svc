@@ -62,7 +62,7 @@ endif
 SOURCE_DIR=$(PREFIX)
 BINARY_DIR=$(PREFIX)/bin
 BINARY_LINKER_SVC=svc
-DOCKER_TAG=ccr.ccs.tencentyun.com/icepay/svc:latest
+DOCKER_TAG=useccr.ccs.tencentyun.com/icepay/svc:latest
 
 .PHONY: all summary svc test upgrade docker push
 .DEFAULT: all
