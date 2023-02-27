@@ -18,7 +18,7 @@ steps:
         from_secret: docker_registry_password_tencent
       repo: useccr.ccs.tencentyun.com/icepay/svc
       tags: latest
-      registry: useccrccr.ccs.tencentyun.com
+      registry: useccr.ccs.tencentyun.com
 
   - name: deploy
     image: appleboy/drone-ssh:latest
