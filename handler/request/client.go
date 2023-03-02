@@ -18,6 +18,8 @@ type ClientPostToken struct {
 	Password string `json:"password" xml:"password"`
 }
 
+type ClientPostRefresh struct{}
+
 /*
  * Local variables:
  * tab-width: 4

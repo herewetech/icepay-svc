@@ -13,26 +13,40 @@
 
 package response
 
-import "time"
-
 /* {{{ [Response codes && messages] */
 const (
-	CodeTenantDoesNotExists = 11401001
-	CodeTenantWrongPassword = 11401002
-	CodeTenantGetError      = 11500001
+	CodeTenantDoesNotExists        = 11401001
+	CodeTenantWrongPassword        = 11401002
+	CodeTenantInvalidAuthorization = 11401010
+	CodeTenantGetError             = 11500001
 )
 
 const (
-	MsgTenantDoesNotExists = "Tenant does not exists"
-	MsgTenantWrongPassword = "Wrong tenant password"
-	MsgTenantGetError      = "Get tenant from database error"
+	MsgTenantDoesNotExists        = "Tenant does not exists"
+	MsgTenantWrongPassword        = "Wrong tenant password"
+	MsgTenantInvalidAuthorization = "Invalid authorization information"
+	MsgTenantGetError             = "Get tenant from database error"
 )
 
 /* }}} */
 
 type TenantPostToken struct {
-	Token  string    `json:"token" xml:"token"`
-	Expiry time.Time `json:"expiry" xml:"exipry"`
+	AccessToken   string `json:"access_token" xml:"access_token"`
+	RefreshToken  string `json:"refresh_token" xml:"refresh_token"`
+	AccessExpiry  int64  `json:"access_expiry" xml:"access_exipry"`
+	RefreshExpiry int64  `json:"refresh_expiry" xml:"refresh_expiry"`
+	TokenType     string `json:"token_type" xml:"token_type"`
+}
+
+type TenantPostRefresh struct {
+	AccessToken  string `json:"access_token" xml:"access_token"`
+	AccessExpiry int64  `json:"access_expiry" xml:"access_exipry"`
+	TokenType    string `json:"token_type" xml:"token_type"`
+}
+
+type TenantGetMe struct {
+	ID    string `json:"id" xml:"id"`
+	Email string `json:"email" xml:"email"`
 }
 
 /*

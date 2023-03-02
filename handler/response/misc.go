@@ -15,7 +15,14 @@ package response
 
 /* {{{ [Response codes && messages] */
 const (
-	CodeAuthInternal = 20401500
+	CodeInvalidEmailOrPassword = 20400001
+	CodeAuthFailed             = 20401001
+	CodeAuthInternal           = 20401500
+)
+
+const (
+	MsgInvalidEmailOrPassword = "Invalid email or password"
+	MsgAuthInternal           = "Authorization failed"
 )
 
 /* }}} */

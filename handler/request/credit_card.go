@@ -13,6 +13,14 @@
 
 package request
 
+type CreditCardPost struct{}
+
+type CreditCardDelete struct{}
+
+type CreditCardGet struct{}
+
+type CreditCardGetList struct{}
+
 /*
  * Local variables:
  * tab-width: 4

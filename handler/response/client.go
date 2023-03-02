@@ -13,28 +13,40 @@
 
 package response
 
-import "time"
-
 /* {{{ [Response codes && messages] */
 const (
-	CodeInvalidEmailOrPassword = 10400001
-	CodeClientDoesNotExists    = 10401001
-	CodeClientWrongPassword    = 10401002
-	CodeClientGetError         = 10500001
+	CodeClientDoesNotExists        = 10401001
+	CodeClientWrongPassword        = 10401002
+	CodeClientInvalidAuthorization = 10401010
+	CodeClientGetError             = 10500001
 )
 
 const (
-	MsgInvalidEmailOrPassword = "Invalid email or password"
-	MsgClientDoesNotExists    = "Client does not exists"
-	MsgClientWrongPassword    = "Wrong client password"
-	MsgClientGetError         = "Get client from database error"
+	MsgClientDoesNotExists        = "Client does not exists"
+	MsgClientWrongPassword        = "Wrong client password"
+	MsgClientInvalidAuthorization = "Invalid authorization information"
+	MsgClientGetError             = "Get client from database error"
 )
 
 /* }}} */
 
 type ClientPostToken struct {
-	Token  string    `json:"token" xml:"token"`
-	Expiry time.Time `json:"expiry" xml:"exipry"`
+	AccessToken   string `json:"access_token" xml:"access_token"`
+	RefreshToken  string `json:"refresh_token" xml:"refresh_token"`
+	AccessExpiry  int64  `json:"access_expiry" xml:"access_exipry"`
+	RefreshExpiry int64  `json:"refresh_expiry" xml:"refresh_expiry"`
+	TokenType     string `json:"token_type" xml:"token_type"`
+}
+
+type ClientPostRefresh struct {
+	AccessToken  string `json:"access_token" xml:"access_token"`
+	AccessExpiry int64  `json:"access_expiry" xml:"access_exipry"`
+	TokenType    string `json:"token_type" xml:"token_type"`
+}
+
+type ClientGetMe struct {
+	ID    string `json:"id" xml:"id"`
+	Email string `json:"email" xml:"email"`
 }
 
 /*

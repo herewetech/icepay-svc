@@ -18,6 +18,8 @@ type TenantPostToken struct {
 	Password string `json:"password" xml:"password"`
 }
 
+type TenantPostRefresh struct{}
+
 /*
  * Local variables:
  * tab-width: 4

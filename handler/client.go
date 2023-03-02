@@ -15,6 +15,7 @@ package handler
 
 import (
 	"crypto/sha512"
+	"errors"
 	"fmt"
 	"icepay-svc/handler/request"
 	"icepay-svc/handler/response"
@@ -22,8 +23,12 @@ import (
 	"icepay-svc/runtime"
 	"icepay-svc/service"
 	"icepay-svc/utils"
+	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/jwt/v3"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type Client struct {
@@ -36,7 +41,14 @@ func InitClient() *Client {
 	clientG := runtime.Server.Group("/client")
 	clientG.Post("/token", h.token).Name("ClientPostToken")
 	clientG.Post("/refresh", h.refresh).Name("ClientPostRefresh")
+	clientG.Use(jwtware.New(jwtware.Config{
+		SigningKey:     []byte(runtime.Config.Auth.JWTAccessSecret),
+		SuccessHandler: jwtSuccessHandler,
+		ErrorHandler:   jwtErrorHandler,
+	}))
 	clientG.Put("/password", h.changePassword).Name("ClientPutPassword")
+	clientG.Get("/me", h.me).Name("ClientGetMe")
+
 	clientG.Get("/credential", h.credential).Name("ClientGetCredential")
 
 	h.svcAuth = service.NewAuth()
@@ -107,19 +119,35 @@ func (h *Client) token(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(resp)
 	}
 
-	jwt, exp, err := h.svcAuth.JWTSign(clt.ID, clt.Email)
-	if err != nil {
+	// AccessToken
+	jwtAccess, errAccess := h.svcAuth.JWTSign(&service.Sign{
+		Sub:       clt.ID,
+		Name:      clt.Email,
+		Type:      "client",
+		ExpiresIn: time.Duration(runtime.Config.Auth.JWTAccessExpiry) * time.Minute,
+	})
+	// RefreshToken
+	jwtRefresh, errRefresh := h.svcAuth.JWTSign(&service.Sign{
+		Sub:       clt.ID,
+		Name:      clt.Email,
+		Type:      "client::refresh",
+		ExpiresIn: time.Duration(runtime.Config.Auth.JWTRefreshExpiry) * time.Minute,
+	})
+	if errAccess != nil || errRefresh != nil {
 		resp := utils.WrapResponse(nil)
 		resp.Status = fiber.StatusInternalServerError
 		resp.Code = response.CodeAuthInternal
-		resp.Message = err.Error()
+		resp.Message = response.MsgAuthInternal
 
 		return c.Status(fiber.StatusInternalServerError).JSON(resp)
 	}
 
 	resp := utils.WrapResponse(&response.ClientPostToken{
-		Token:  jwt,
-		Expiry: exp,
+		AccessToken:   jwtAccess.Token,
+		RefreshToken:  jwtRefresh.Token,
+		AccessExpiry:  jwtAccess.Expiry,
+		RefreshExpiry: jwtRefresh.Expiry,
+		TokenType:     "bearer",
 	})
 
 	return c.JSON(resp)
@@ -127,12 +155,74 @@ func (h *Client) token(c *fiber.Ctx) error {
 
 // refresh: Refresh JWT token
 func (h *Client) refresh(c *fiber.Ctx) error {
-	return nil
+	auth := c.Get("Authorization")
+	if len(auth) < 8 || strings.ToLower(auth[0:7]) != "bearer " {
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodeClientInvalidAuthorization
+		resp.Message = response.MsgClientInvalidAuthorization
+		resp.Status = fiber.StatusUnauthorized
+
+		return c.Status(fiber.StatusUnauthorized).JSON(resp)
+	}
+
+	refreshToken := auth[7:]
+	claims, err := h.svcAuth.JWTValid(refreshToken)
+	if err != nil {
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodeAuthInternal
+		resp.Message = response.MsgAuthInternal
+		resp.Status = fiber.StatusUnauthorized
+
+		return c.Status(fiber.StatusUnauthorized).JSON(resp)
+	}
+
+	// Re-sign token
+	id, _ := claims["sub"].(string)
+	name, _ := claims["name"].(string)
+	jwt, err := h.svcAuth.JWTSign(&service.Sign{
+		Sub:       id,
+		Name:      name,
+		Type:      "client",
+		ExpiresIn: time.Duration(runtime.Config.Auth.JWTAccessExpiry) * time.Minute,
+	})
+	if err != nil {
+		resp := utils.WrapResponse(nil)
+		resp.Status = fiber.StatusInternalServerError
+		resp.Code = response.CodeAuthInternal
+		resp.Message = response.MsgAuthInternal
+
+		return c.Status(fiber.StatusInternalServerError).JSON(resp)
+	}
+
+	resp := utils.WrapResponse(&response.ClientPostRefresh{
+		AccessToken:  jwt.Token,
+		AccessExpiry: jwt.Expiry,
+		TokenType:    "bearer",
+	})
+
+	return c.JSON(resp)
 }
 
 // changePassword: Change password
 func (h *Client) changePassword(c *fiber.Ctx) error {
 	return nil
+}
+
+// me: Get myself
+func (h *Client) me(c *fiber.Ctx) error {
+	user, ok := c.Locals("user").(*jwt.Token)
+	if !ok {
+		return errors.New("parse userdata from context failed")
+	}
+
+	claims, ok := user.Claims.(jwt.MapClaims)
+	if !ok {
+		return errors.New("wrong userdata format")
+	}
+
+	resp := utils.WrapResponse(claims)
+
+	return c.JSON(resp)
 }
 
 // credential: Get information for QR render

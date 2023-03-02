@@ -13,6 +13,8 @@
 
 package request
 
+type PaymentPost struct{}
+
 /*
  * Local variables:
  * tab-width: 4

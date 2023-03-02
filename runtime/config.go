@@ -33,8 +33,10 @@ type mainConfig struct {
 		DSN string `json:"dsn" mapstructure:"dsn"`
 	} `json:"database" mapstructure:"database"`
 	Auth struct {
-		JWTSecret string `json:"jwt_secret" mapstructure:"jwt_secret"`
-		JWTExpiry int64  `json:"jwt_expiry" mapstructure:"jwt_expiry"`
+		JWTAccessSecret  string `json:"jwt_access_secret" mapstructure:"jwt_access_secret"`
+		JWTRefreshSecret string `json:"jwt_refresh_secret" mapstructure:"jwt_refresh_secret"`
+		JWTAccessExpiry  int64  `json:"jwt_access_expiry" mapstructure:"jwt_access_expiry"`
+		JWTRefreshExpiry int64  `json:"jwt_refresh_expiry" mapstructure:"jwt_refresh_expiry"`
 	} `json:"auth" mapstructure:"auth"`
 	Debug bool `json:"debug" mapstructure:"debug"`
 }
@@ -42,12 +44,14 @@ type mainConfig struct {
 var Config mainConfig
 
 var defaultConfigs = map[string]interface{}{
-	"http.listen_addr": ":9900",
-	"http.prefork":     false,
-	"database.dsn":     "postgres://icepay@localhost:5432/icepay?sslmode=disable",
-	"auth.jwt_secret":  "secret",
-	"auth.jwt_expiry":  1440,
-	"debug":            true,
+	"http.listen_addr":        ":9900",
+	"http.prefork":            false,
+	"database.dsn":            "postgres://icepay@localhost:5432/icepay?sslmode=disable",
+	"auth.jwt_access_secret":  "access_secret",
+	"auth.jwt_refresh_secret": "refresh_secret",
+	"auth.jwt_access_expiry":  10,
+	"auth.jwt_refresh_expiry": 43200,
+	"debug":                   true,
 }
 
 func LoadConfig() error {
