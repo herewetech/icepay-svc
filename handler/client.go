@@ -15,6 +15,7 @@ package handler
 
 import (
 	"crypto/sha512"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"icepay-svc/handler/request"
@@ -29,6 +30,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/skip2/go-qrcode"
 )
 
 type Client struct {
@@ -227,7 +229,53 @@ func (h *Client) me(c *fiber.Ctx) error {
 
 // credential: Get information for QR render
 func (h *Client) credential(c *fiber.Ctx) error {
-	return nil
+	id, _ := c.Locals("AuthID").(string)
+	t, _ := c.Locals("AuthType").(string)
+	fmt.Println(id, t)
+	if id == "" || t != "client" {
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodeAuthInformationMissing
+		resp.Message = response.MsgAuthInformationMissing
+		resp.Status = fiber.StatusBadRequest
+
+		return c.Status(fiber.StatusBadRequest).JSON(resp)
+	}
+
+	source := fmt.Sprintf("%s@@%d", id, time.Now().Add(5*time.Minute).Unix())
+	// AES encrypt
+	cipher, err := utils.AESCrypt([]byte(source), []byte(runtime.Config.Security.Payment.AESKey))
+	if err != nil {
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodeEncodeFailed
+		resp.Message = response.MsgEncodeFailed
+		resp.Status = fiber.StatusInternalServerError
+
+		runtime.Logger.Errorf("AES crypt failed : %s", err.Error())
+
+		return c.Status(fiber.StatusInternalServerError).JSON(resp)
+	}
+
+	cipherText := base64.StdEncoding.EncodeToString(cipher)
+	credential := fmt.Sprintf("icepay://%s", cipherText)
+
+	if c.Query("img") != "" {
+		// Render image
+		png, err := qrcode.Encode(credential, qrcode.High, 512)
+		if err != nil {
+			return err
+		}
+
+		c.Set("Content-Type", "image/png")
+		c.Write(png)
+
+		return nil
+	}
+
+	resp := utils.WrapResponse(&response.ClientGetCredential{
+		Credential: credential,
+	})
+
+	return c.JSON(resp)
 }
 
 /* }}} */

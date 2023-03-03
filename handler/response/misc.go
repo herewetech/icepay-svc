@@ -18,11 +18,16 @@ const (
 	CodeInvalidEmailOrPassword = 20400001
 	CodeAuthFailed             = 20401001
 	CodeAuthInternal           = 20401500
+	CodeAuthInformationMissing = 20401404
+	CodeEncodeFailed           = 20500001
 )
 
 const (
 	MsgInvalidEmailOrPassword = "Invalid email or password"
-	MsgAuthInternal           = "Authorization failed"
+	MsgAuthFailed             = "Authorization failed"
+	MsgAuthInternal           = "Authorization internal error"
+	MsgAuthInformationMissing = "Authorization information missing"
+	MsgEncodeFailed           = "Encode failed"
 )
 
 /* }}} */

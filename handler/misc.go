@@ -66,7 +66,7 @@ func jwtSuccessHandler(c *fiber.Ctx) error {
 		c.Locals("AuthEmail", authEmail)
 	}
 
-	authID, ok := claims["id"].(string)
+	authID, ok := claims["sub"].(string)
 	if ok {
 		c.Locals("AuthID", authID)
 	}

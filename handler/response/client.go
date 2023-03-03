@@ -49,6 +49,10 @@ type ClientGetMe struct {
 	Email string `json:"email" xml:"email"`
 }
 
+type ClientGetCredential struct {
+	Credential string `json:"credential" xml:"credential"`
+}
+
 /*
  * Local variables:
  * tab-width: 4

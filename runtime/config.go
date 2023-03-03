@@ -38,20 +38,26 @@ type mainConfig struct {
 		JWTAccessExpiry  int64  `json:"jwt_access_expiry" mapstructure:"jwt_access_expiry"`
 		JWTRefreshExpiry int64  `json:"jwt_refresh_expiry" mapstructure:"jwt_refresh_expiry"`
 	} `json:"auth" mapstructure:"auth"`
+	Security struct {
+		Payment struct {
+			AESKey string `json:"aes_key" mapstructure:"aes_key"`
+		} `json:"payment" mapstructure:"payment"`
+	} `json:"security" mapstructure:"security"`
 	Debug bool `json:"debug" mapstructure:"debug"`
 }
 
 var Config mainConfig
 
 var defaultConfigs = map[string]interface{}{
-	"http.listen_addr":        ":9900",
-	"http.prefork":            false,
-	"database.dsn":            "postgres://icepay@localhost:5432/icepay?sslmode=disable",
-	"auth.jwt_access_secret":  "access_secret",
-	"auth.jwt_refresh_secret": "refresh_secret",
-	"auth.jwt_access_expiry":  10,
-	"auth.jwt_refresh_expiry": 43200,
-	"debug":                   true,
+	"http.listen_addr":         ":9900",
+	"http.prefork":             false,
+	"database.dsn":             "postgres://icepay@localhost:5432/icepay?sslmode=disable",
+	"auth.jwt_access_secret":   "access_secret",
+	"auth.jwt_refresh_secret":  "refresh_secret",
+	"auth.jwt_access_expiry":   10,
+	"auth.jwt_refresh_expiry":  43200,
+	"security.payment.aes_key": "icepay@@20130920",
+	"debug":                    true,
 }
 
 func LoadConfig() error {
