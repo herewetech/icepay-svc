@@ -5,7 +5,7 @@
  */
 
 /**
- * @file credit_card.go
+ * @file card.go
  * @package model
  * @author Dr.NP <np@herewe.tech>
  * @since 02/26/2022
@@ -15,8 +15,15 @@ package model
 
 import "time"
 
-type CreditCard struct {
-	ID string `bun:"id,pk" json:"id"`
+type Card struct {
+	ID         string `bun:"id,pk" json:"id"`
+	OwnerID    string `bun:"owner_id" json:"owner_id"`
+	OwnerType  string `bun:"owner_type" json:"owner_type"`
+	Number     string `bun:"number" json:"nunber"`
+	CardType   string `bun:"card_type" json:"card_type"`
+	Holder     string `bun:"holder" json:"holder"`
+	Expiration string `bun:"expiration" json:"expiration"`
+	CVV        string `bun:"cvv" json:"cvv"`
 
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:CURRENT_TIMESTAMP" json:"updated_at"`

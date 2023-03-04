@@ -5,7 +5,7 @@
  */
 
 /**
- * @file credit_card.go
+ * @file card.go
  * @package handler
  * @author Dr.NP <np@herewe.tech>
  * @since 02/26/2023
@@ -15,26 +15,31 @@ package handler
 
 import (
 	"icepay-svc/runtime"
+	"icepay-svc/service"
 
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
 )
 
-type CreditCard struct{}
+type Card struct {
+	svcCard *service.Card
+}
 
-func InitCreditCard() *CreditCard {
-	h := new(CreditCard)
+func InitCreditCard() *Card {
+	h := new(Card)
 
-	creditCardG := runtime.Server.Group("/credit_card")
-	creditCardG.Use(jwtware.New(jwtware.Config{
+	CardG := runtime.Server.Group("/card")
+	CardG.Use(jwtware.New(jwtware.Config{
 		SigningKey:     []byte(runtime.Config.Auth.JWTAccessSecret),
 		SuccessHandler: jwtSuccessHandler,
 		ErrorHandler:   jwtErrorHandler,
 	}))
-	creditCardG.Post("/", h.add).Name("CreditCardPost")
-	creditCardG.Delete("/:id", h.delete).Name("CreditCardDelete")
-	creditCardG.Get("/:id", h.get).Name("CreditCardGet")
-	creditCardG.Get("/list", h.list).Name("CreditCardGetList")
+	CardG.Post("/", h.add).Name("CreditCardPost")
+	CardG.Delete("/:id", h.delete).Name("CreditCardDelete")
+	CardG.Get("/:id", h.get).Name("CreditCardGet")
+	CardG.Get("/list", h.list).Name("CreditCardGetList")
+
+	h.svcCard = service.NewCard()
 
 	return h
 }
@@ -42,22 +47,23 @@ func InitCreditCard() *CreditCard {
 /* {{{ [Routers] - Definitions */
 
 // add: Add card to client
-func (h *CreditCard) add(c *fiber.Ctx) error {
+func (h *Card) add(c *fiber.Ctx) error {
+	//h.svcCard.Create()
 	return nil
 }
 
 // delete: Remove card from client
-func (h *CreditCard) delete(c *fiber.Ctx) error {
+func (h *Card) delete(c *fiber.Ctx) error {
 	return nil
 }
 
 // get: Get card by given id
-func (h *CreditCard) get(c *fiber.Ctx) error {
+func (h *Card) get(c *fiber.Ctx) error {
 	return nil
 }
 
 // list: Get cards (list) of current login client
-func (h *CreditCard) list(c *fiber.Ctx) error {
+func (h *Card) list(c *fiber.Ctx) error {
 	return nil
 }
 

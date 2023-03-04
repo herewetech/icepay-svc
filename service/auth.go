@@ -42,6 +42,7 @@ func NewAuth() *Auth {
 	return s
 }
 
+/* {{{ [Methods] */
 func (s *Auth) JWTSign(sign *Sign) (*JWT, error) {
 	now := time.Now()
 	exp := now.Add(sign.ExpiresIn).Unix()
@@ -91,6 +92,8 @@ func (s *Auth) JWTValid(ts string) (jwt.MapClaims, error) {
 
 	return nil, fmt.Errorf("Invalid claims format")
 }
+
+/* }}} */
 
 /*
  * Local variables:

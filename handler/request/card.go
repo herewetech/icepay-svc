@@ -5,7 +5,7 @@
  */
 
 /**
- * @file credit_card.go
+ * @file card.go
  * @package request
  * @author Dr.NP <np@herewe.tech>
  * @since 02/26/2023
@@ -13,13 +13,15 @@
 
 package request
 
-type CreditCardPost struct{}
+type CardPost struct {
+	Number string `json:"number" xml:"number"`
+}
 
-type CreditCardDelete struct{}
+type CardDelete struct{}
 
-type CreditCardGet struct{}
+type CardGet struct{}
 
-type CreditCardGetList struct{}
+type CardGetList struct{}
 
 /*
  * Local variables:

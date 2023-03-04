@@ -5,21 +5,28 @@
  */
 
 /**
- * @file credit_card.go
- * @package response
+ * @file card.go
+ * @package service
  * @author Dr.NP <np@herewe.tech>
  * @since 02/26/2023
  */
 
-package response
+package service
 
-type CreditCardPost struct{}
+type Card struct{}
 
-type CreditCardDelete struct{}
+func NewCard() *Card {
+	s := new(Card)
 
-type CreditCardGet struct{}
+	return s
+}
 
-type CreditCardGetList struct{}
+/* {{{ [Methods] */
+func (s *Card) Create(owner_id, owner_type, number string) error {
+	return nil
+}
+
+/* }}} */
 
 /*
  * Local variables:
