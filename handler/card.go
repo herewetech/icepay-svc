@@ -74,7 +74,11 @@ func (h *Card) add(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(resp)
 	}
 
-	card, err := h.svcCard.Create(c.Context(), id, t, req.Number)
+	card, err := h.svcCard.Create(c.Context(), &model.Card{
+		OwnerID:   id,
+		OwnerType: t,
+		Number:    req.Number,
+	})
 	if err != nil {
 		runtime.Logger.Warnf("create card failed : %s", err)
 		resp := utils.WrapResponse(nil)
@@ -109,7 +113,11 @@ func (h *Card) delete(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(resp)
 	}
 
-	err := h.svcCard.Delete(c.Context(), id, t, cardID)
+	err := h.svcCard.Delete(c.Context(), &model.Card{
+		OwnerID:   id,
+		OwnerType: t,
+		ID:        cardID,
+	})
 	if errors.Is(err, model.ErrCardDoesNotExists) {
 		resp := utils.WrapResponse(nil)
 		resp.Code = response.CodeTargetNotFound
@@ -148,7 +156,11 @@ func (h *Card) get(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(resp)
 	}
 
-	ret, err := h.svcCard.Get(c.Context(), id, t, cardID)
+	ret, err := h.svcCard.Get(c.Context(), &model.Card{
+		OwnerID:   id,
+		OwnerType: t,
+		ID:        cardID,
+	})
 	if errors.Is(err, sql.ErrNoRows) {
 		resp := utils.WrapResponse(nil)
 		resp.Code = response.CodeTargetNotFound
@@ -190,7 +202,10 @@ func (h *Card) list(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(resp)
 	}
 
-	ret, err := h.svcCard.List(c.Context(), id, t)
+	ret, err := h.svcCard.List(c.Context(), &model.Card{
+		OwnerID:   id,
+		OwnerType: t,
+	})
 	if err != nil {
 		runtime.Logger.Warnf("get card failed : %s", err)
 		resp := utils.WrapResponse(nil)

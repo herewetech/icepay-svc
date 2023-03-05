@@ -19,6 +19,7 @@ import (
 	"icepay-svc/runtime"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -29,6 +30,8 @@ type Transaction struct {
 	Tenant        string `bun:"tenant,notnull" json:"tenant"`
 	Amount        int64  `bun:"amount,notnull" json:"amount"`
 	Currency      string `bun:"currency,notnull" json:"currency"`
+	Status        string `bun:"status" json:"status"`
+	Detail        string `bun:"detail" json:"detail"`
 
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:CURRENT_TIMESTAMP" json:"updated_at"`
@@ -39,7 +42,11 @@ type Transaction struct {
 
 // Create
 func (m *Transaction) Create(ctx context.Context) error {
-	_, err := runtime.DB.NewInsert().Model(m).Exec(ctx)
+	if m.ID == "" {
+		m.ID = uuid.NewString()
+	}
+
+	_, err := runtime.DB.NewInsert().Model(m).Returning("").Exec(ctx)
 	if err == nil {
 		runtime.Logger.Infof("Transaction [%s] created", m.ID)
 	}

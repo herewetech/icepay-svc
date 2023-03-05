@@ -25,7 +25,7 @@ const (
 /* }}} */
 
 type PaymentPost struct {
-	ID string `json:"id" xml:"id"`
+	TransactionID string `json:"transaction_id" xml:"transaction_id"`
 }
 
 /*

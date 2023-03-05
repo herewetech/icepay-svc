@@ -32,9 +32,9 @@ func NewCard() *Card {
 /* {{{ [Methods] */
 
 // Create
-func (s *Card) Create(ctx context.Context, ownerID, ownerType, number string) (*model.Card, error) {
+func (s *Card) Create(ctx context.Context, input *model.Card) (*model.Card, error) {
 	// Valid card number
-	number = strings.TrimSpace(number)
+	number := strings.TrimSpace(input.Number)
 	number = strings.ReplaceAll(number, " ", "")
 	c := utils.ValidCardNumber(number)
 	if c == utils.CardInvalid {
@@ -42,8 +42,8 @@ func (s *Card) Create(ctx context.Context, ownerID, ownerType, number string) (*
 	}
 
 	card := &model.Card{
-		OwnerID:   ownerID,
-		OwnerType: ownerType,
+		OwnerID:   input.OwnerID,
+		OwnerType: input.OwnerType,
 		Number:    number,
 		CardType:  c,
 	}
@@ -57,22 +57,22 @@ func (s *Card) Create(ctx context.Context, ownerID, ownerType, number string) (*
 }
 
 // Delete
-func (s *Card) Delete(ctx context.Context, ownerID, ownerType, id string) error {
+func (s *Card) Delete(ctx context.Context, input *model.Card) error {
 	card := &model.Card{
-		OwnerID:   ownerID,
-		OwnerType: ownerType,
-		ID:        id,
+		OwnerID:   input.OwnerID,
+		OwnerType: input.OwnerType,
+		ID:        input.ID,
 	}
 
 	return card.Delete(ctx)
 }
 
 // Get
-func (s *Card) Get(ctx context.Context, ownerID, ownerType, id string) (*model.Card, error) {
+func (s *Card) Get(ctx context.Context, input *model.Card) (*model.Card, error) {
 	card := &model.Card{
-		OwnerID:   ownerID,
-		OwnerType: ownerType,
-		ID:        id,
+		OwnerID:   input.OwnerID,
+		OwnerType: input.OwnerType,
+		ID:        input.ID,
 	}
 
 	err := card.Get(ctx)
@@ -84,10 +84,10 @@ func (s *Card) Get(ctx context.Context, ownerID, ownerType, id string) (*model.C
 }
 
 // List
-func (s *Card) List(ctx context.Context, ownerID, ownerType string) ([]*model.Card, error) {
+func (s *Card) List(ctx context.Context, input *model.Card) ([]*model.Card, error) {
 	card := &model.Card{
-		OwnerID:   ownerID,
-		OwnerType: ownerType,
+		OwnerID:   input.OwnerID,
+		OwnerType: input.OwnerType,
 	}
 
 	list, err := card.List(ctx)

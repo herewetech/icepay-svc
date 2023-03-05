@@ -14,9 +14,9 @@
 package handler
 
 import (
-	"fmt"
 	"icepay-svc/handler/request"
 	"icepay-svc/handler/response"
+	"icepay-svc/model"
 	"icepay-svc/runtime"
 	"icepay-svc/service"
 	"icepay-svc/utils"
@@ -26,8 +26,8 @@ import (
 )
 
 type Payment struct {
-	svcPayment    *service.Payment
-	svcCredential *service.Credential
+	svcTransaction *service.Transaction
+	svcCredential  *service.Credential
 }
 
 func InitPayment() *Payment {
@@ -41,7 +41,7 @@ func InitPayment() *Payment {
 	}))
 	paymentG.Post("/", h.add).Name("PaymentPost")
 
-	h.svcPayment = service.NewPayment()
+	h.svcTransaction = service.NewTransaction()
 	h.svcCredential = service.NewCredential()
 
 	return h
@@ -83,23 +83,25 @@ func (h *Payment) add(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(resp)
 	}
 
-	fmt.Println(clientID)
+	transaction, err := h.svcTransaction.Create(c.Context(), &model.Transaction{
+		Client:   clientID,
+		Tenant:   id,
+		Amount:   req.Amount,
+		Currency: req.Currency,
+		Detail:   req.Detail,
+	})
+	if err != nil {
+		runtime.Logger.Warnf("create payment failed : %s", err)
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodePaymentCreateFailed
+		resp.Message = response.MsgPaymentCreateFailed
+		resp.Status = fiber.StatusInternalServerError
 
-	/*
-		transaction, err := h.svcPayment.Create(c.Context(), id, req.Credential, req.Amount, req.Currency, req.Detail)
-		if err != nil {
-			runtime.Logger.Warnf("create payment failed : %s", err)
-			resp := utils.WrapResponse(nil)
-			resp.Code = response.CodePaymentCreateFailed
-			resp.Message = response.MsgPaymentCreateFailed
-			resp.Status = fiber.StatusInternalServerError
-
-			return c.Status(fiber.StatusInternalServerError).JSON(resp)
-		}
-	*/
+		return c.Status(fiber.StatusInternalServerError).JSON(resp)
+	}
 
 	resp := utils.WrapResponse(&response.PaymentPost{
-		//ID: transaction.ID,
+		TransactionID: transaction.ID,
 	})
 	resp.Status = fiber.StatusCreated
 
