@@ -13,7 +13,12 @@
 
 package request
 
-type PaymentPost struct{}
+type PaymentPost struct {
+	Credential string `json:"credential" xml:"credential"`
+	Amount     int64  `json:"amount" xml:"amount"`
+	Currency   string `json:"currency" xml:"currency"`
+	Detail     string `json:"detail" xml:"detail"`
+}
 
 /*
  * Local variables:

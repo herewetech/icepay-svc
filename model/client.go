@@ -19,6 +19,7 @@ import (
 	"icepay-svc/runtime"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -41,6 +42,10 @@ type Client struct {
 
 // Create: creates client
 func (m *Client) Create(ctx context.Context) error {
+	if m.ID == "" {
+		m.ID = uuid.NewString()
+	}
+
 	_, err := runtime.DB.NewInsert().Model(m).Exec(ctx)
 	if err == nil {
 		runtime.Logger.Infof("client [%s] created", m.ID)

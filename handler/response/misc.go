@@ -20,6 +20,8 @@ const (
 	CodeAuthInternal           = 20401500
 	CodeAuthInformationMissing = 20401404
 	CodeEncodeFailed           = 20500001
+	CodeDecodeFailed           = 20500002
+	CodeTargetNotFound         = 20404001
 )
 
 const (
@@ -28,6 +30,8 @@ const (
 	MsgAuthInternal           = "Authorization internal error"
 	MsgAuthInformationMissing = "Authorization information missing"
 	MsgEncodeFailed           = "Encode failed"
+	MsgDecodeFailed           = "Decode failed"
+	MsgTargetNotFound         = "Target not found"
 )
 
 /* }}} */

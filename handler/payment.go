@@ -14,13 +14,21 @@
 package handler
 
 import (
+	"fmt"
+	"icepay-svc/handler/request"
+	"icepay-svc/handler/response"
 	"icepay-svc/runtime"
+	"icepay-svc/service"
+	"icepay-svc/utils"
 
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
 )
 
-type Payment struct{}
+type Payment struct {
+	svcPayment    *service.Payment
+	svcCredential *service.Credential
+}
 
 func InitPayment() *Payment {
 	h := new(Payment)
@@ -33,6 +41,9 @@ func InitPayment() *Payment {
 	}))
 	paymentG.Post("/", h.add).Name("PaymentPost")
 
+	h.svcPayment = service.NewPayment()
+	h.svcCredential = service.NewCredential()
+
 	return h
 }
 
@@ -40,7 +51,59 @@ func InitPayment() *Payment {
 
 // add: Create new payment
 func (h *Payment) add(c *fiber.Ctx) error {
-	return nil
+	var req request.PaymentPost
+	err := c.BodyParser(&req)
+	if err != nil {
+		runtime.Logger.Warnf("parse request body failed : %s", err)
+		c.SendStatus(fiber.StatusBadRequest)
+
+		return err
+	}
+
+	id, _ := c.Locals("AuthID").(string)
+	t, _ := c.Locals("AuthType").(string)
+	if id == "" || t != "tenant" {
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodeAuthInformationMissing
+		resp.Message = response.MsgAuthInformationMissing
+		resp.Status = fiber.StatusBadRequest
+
+		return c.Status(fiber.StatusBadRequest).JSON(resp)
+	}
+
+	clientID, err := h.svcCredential.Decode(req.Credential)
+	if err != nil {
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodeDecodeFailed
+		resp.Message = response.MsgDecodeFailed
+		resp.Status = fiber.StatusInternalServerError
+
+		runtime.Logger.Warnf("AES decrypt failed : %s", err.Error())
+
+		return c.Status(fiber.StatusInternalServerError).JSON(resp)
+	}
+
+	fmt.Println(clientID)
+
+	/*
+		transaction, err := h.svcPayment.Create(c.Context(), id, req.Credential, req.Amount, req.Currency, req.Detail)
+		if err != nil {
+			runtime.Logger.Warnf("create payment failed : %s", err)
+			resp := utils.WrapResponse(nil)
+			resp.Code = response.CodePaymentCreateFailed
+			resp.Message = response.MsgPaymentCreateFailed
+			resp.Status = fiber.StatusInternalServerError
+
+			return c.Status(fiber.StatusInternalServerError).JSON(resp)
+		}
+	*/
+
+	resp := utils.WrapResponse(&response.PaymentPost{
+		//ID: transaction.ID,
+	})
+	resp.Status = fiber.StatusCreated
+
+	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 
 /* }}} */

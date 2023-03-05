@@ -13,7 +13,20 @@
 
 package response
 
-type PaymentPost struct{}
+/* {{{ [Response codes && messages] */
+const (
+	CodePaymentCreateFailed = 13500001
+)
+
+const (
+	MsgPaymentCreateFailed = "Create payment failed"
+)
+
+/* }}} */
+
+type PaymentPost struct {
+	ID string `json:"id" xml:"id"`
+}
 
 /*
  * Local variables:

@@ -13,13 +13,39 @@
 
 package response
 
-type CardPost struct{}
+/* {{{ [Response codes && messages] */
+const (
+	CodeCardCreateFailed = 12500001
+	CodeCardDeleteFailed = 12500002
+	CodeCardGetFailed    = 12500003
+)
+
+const (
+	MsgCardCreateFailed = "Create card failed"
+	MsgCardDeleteFailed = "Delete card failed"
+	MsgCardGetFailed    = "Get card failed"
+)
+
+/* }}} */
+
+type CardPost struct {
+	ID       string `json:"id" xml:"id"`
+	Number   string `json:"number" xml:"number"`
+	CardType string `json:"card_type" xml:"card_type"`
+}
 
 type CardDelete struct{}
 
-type CardGet struct{}
+type CardGet struct {
+	ID       string `json:"id" xml:"id"`
+	Number   string `json:"number" xml:"number"`
+	CardType string `json:"card_type" xml:"card_type"`
+}
 
-type CardGetList struct{}
+type CardGetList struct {
+	List  []*CardGet `json:"list" xml:"list"`
+	Total int        `json:"total" xml:"total"`
+}
 
 /*
  * Local variables:

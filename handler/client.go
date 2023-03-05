@@ -15,7 +15,6 @@ package handler
 
 import (
 	"crypto/sha512"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"icepay-svc/handler/request"
@@ -34,7 +33,8 @@ import (
 )
 
 type Client struct {
-	svcAuth *service.Auth
+	svcAuth       *service.Auth
+	svcCredential *service.Credential
 }
 
 func InitClient() *Client {
@@ -54,6 +54,7 @@ func InitClient() *Client {
 	clientG.Get("/credential", h.credential).Name("ClientGetCredential")
 
 	h.svcAuth = service.NewAuth()
+	h.svcCredential = service.NewCredential()
 
 	return h
 }
@@ -66,6 +67,7 @@ func (h *Client) token(c *fiber.Ctx) error {
 	err := c.BodyParser(&req)
 	if err != nil {
 		runtime.Logger.Warnf("parse request body failed: %s", err)
+		c.SendStatus(fiber.StatusBadRequest)
 
 		return err
 	}
@@ -231,7 +233,6 @@ func (h *Client) me(c *fiber.Ctx) error {
 func (h *Client) credential(c *fiber.Ctx) error {
 	id, _ := c.Locals("AuthID").(string)
 	t, _ := c.Locals("AuthType").(string)
-	fmt.Println(id, t)
 	if id == "" || t != "client" {
 		resp := utils.WrapResponse(nil)
 		resp.Code = response.CodeAuthInformationMissing
@@ -241,9 +242,7 @@ func (h *Client) credential(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(resp)
 	}
 
-	source := fmt.Sprintf("%s@@%d", id, time.Now().Add(5*time.Minute).Unix())
-	// AES encrypt
-	cipher, err := utils.AESCrypt([]byte(source), []byte(runtime.Config.Security.Payment.AESKey))
+	credential, err := h.svcCredential.Encode(id)
 	if err != nil {
 		resp := utils.WrapResponse(nil)
 		resp.Code = response.CodeEncodeFailed
@@ -254,9 +253,6 @@ func (h *Client) credential(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusInternalServerError).JSON(resp)
 	}
-
-	cipherText := base64.StdEncoding.EncodeToString(cipher)
-	credential := fmt.Sprintf("icepay://%s", cipherText)
 
 	if c.Query("img") != "" {
 		// Render image

@@ -18,14 +18,17 @@ import (
 	"encoding/json"
 	"icepay-svc/runtime"
 	"time"
+
+	"github.com/uptrace/bun"
 )
 
 type Transaction struct {
-	ID       string `bun:"id,pk" json:"id"`
-	Client   string `bun:"client,notnull" json:"client"`
-	Tenant   string `bun:"tenant,notnull" json:"tenant"`
-	Amount   int64  `bun:"amount,notnull" json:"amount"`
-	Currency string `bun:"currency,notnull" json:"currency"`
+	bun.BaseModel `bun:"table:transaction"`
+	ID            string `bun:"id,pk" json:"id"`
+	Client        string `bun:"client,notnull" json:"client"`
+	Tenant        string `bun:"tenant,notnull" json:"tenant"`
+	Amount        int64  `bun:"amount,notnull" json:"amount"`
+	Currency      string `bun:"currency,notnull" json:"currency"`
 
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:CURRENT_TIMESTAMP" json:"updated_at"`

@@ -13,6 +13,14 @@
 
 package service
 
+import (
+	"context"
+	"errors"
+	"icepay-svc/model"
+	"icepay-svc/utils"
+	"strings"
+)
+
 type Card struct{}
 
 func NewCard() *Card {
@@ -22,8 +30,72 @@ func NewCard() *Card {
 }
 
 /* {{{ [Methods] */
-func (s *Card) Create(owner_id, owner_type, number string) error {
-	return nil
+
+// Create
+func (s *Card) Create(ctx context.Context, ownerID, ownerType, number string) (*model.Card, error) {
+	// Valid card number
+	number = strings.TrimSpace(number)
+	number = strings.ReplaceAll(number, " ", "")
+	c := utils.ValidCardNumber(number)
+	if c == utils.CardInvalid {
+		return nil, errors.New("Invalid card number")
+	}
+
+	card := &model.Card{
+		OwnerID:   ownerID,
+		OwnerType: ownerType,
+		Number:    number,
+		CardType:  c,
+	}
+
+	err := card.Create(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return card, nil
+}
+
+// Delete
+func (s *Card) Delete(ctx context.Context, ownerID, ownerType, id string) error {
+	card := &model.Card{
+		OwnerID:   ownerID,
+		OwnerType: ownerType,
+		ID:        id,
+	}
+
+	return card.Delete(ctx)
+}
+
+// Get
+func (s *Card) Get(ctx context.Context, ownerID, ownerType, id string) (*model.Card, error) {
+	card := &model.Card{
+		OwnerID:   ownerID,
+		OwnerType: ownerType,
+		ID:        id,
+	}
+
+	err := card.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return card, nil
+}
+
+// List
+func (s *Card) List(ctx context.Context, ownerID, ownerType string) ([]*model.Card, error) {
+	card := &model.Card{
+		OwnerID:   ownerID,
+		OwnerType: ownerType,
+	}
+
+	list, err := card.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
 }
 
 /* }}} */
