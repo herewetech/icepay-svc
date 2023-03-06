@@ -50,6 +50,7 @@ func main() {
 	runtime.LoadConfig()
 	runtime.InitLogger()
 	runtime.InitServer()
+	runtime.InitNats()
 	runtime.InitDB()
 
 	app := &cli.App{

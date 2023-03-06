@@ -20,6 +20,7 @@ import (
 	"icepay-svc/utils"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -32,6 +33,7 @@ func InitMisc() *Misc {
 	// Load routers
 	runtime.Server.All("/", h.index).Name("Index")
 	runtime.Server.Get("/routers", h.routers).Name("GetRouters")
+	runtime.Server.Get("/docs/*", swagger.HandlerDefault)
 
 	return h
 }

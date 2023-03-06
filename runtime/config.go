@@ -16,6 +16,7 @@ package runtime
 import (
 	"strings"
 
+	"github.com/nats-io/nats.go"
 	"github.com/spf13/viper"
 )
 
@@ -26,12 +27,16 @@ const (
 
 type mainConfig struct {
 	HTTP struct {
-		ListenAddr string `json:"listen_addr" mapstructure:"listen_addr"`
-		Prefork    bool   `json:"prefork" mapstructure:"prefork"`
+		ListenAddr         string `json:"listen_addr" mapstructure:"listen_addr"`
+		Prefork            bool   `json:"prefork" mapstructure:"prefork"`
+		LongPollingTimeout int64  `json:"long_polling_timeout" mapstructure:"long_polling_timeout"` // In second
 	} `json:"http" mapstructure:"http"`
 	Database struct {
 		DSN string `json:"dsn" mapstructure:"dsn"`
 	} `json:"database" mapstructure:"database"`
+	Nats struct {
+		URL string `json:"url" mapstructure:"url"`
+	} `json:"nats" mapstructure:"nats"`
 	Auth struct {
 		JWTAccessSecret  string `json:"jwt_access_secret" mapstructure:"jwt_access_secret"`
 		JWTRefreshSecret string `json:"jwt_refresh_secret" mapstructure:"jwt_refresh_secret"`
@@ -50,7 +55,9 @@ var Config mainConfig
 var defaultConfigs = map[string]interface{}{
 	"http.listen_addr":             ":9900",
 	"http.prefork":                 false,
+	"http.long_polling_timeout":    30,
 	"database.dsn":                 "postgres://icepay@localhost:5432/icepay?sslmode=disable",
+	"nats.url":                     nats.DefaultURL,
 	"auth.jwt_access_secret":       "access_secret",
 	"auth.jwt_refresh_secret":      "refresh_secret",
 	"auth.jwt_access_expiry":       10,

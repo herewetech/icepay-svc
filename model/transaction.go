@@ -15,7 +15,9 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"icepay-svc/runtime"
 	"time"
 
@@ -54,9 +56,52 @@ func (m *Transaction) Create(ctx context.Context) error {
 	return err
 }
 
+// Update: updates transcation
+func (m *Transaction) Update(ctx context.Context) error {
+	uq := runtime.DB.NewUpdate().Model(m).Set("status = ?", m.Status).Set("updated_at = CURRENT_TIMESTAMP")
+	if m.ID != "" {
+		uq = uq.Where("id = ?", m.ID)
+	}
+
+	if m.Client != "" {
+		uq = uq.Where("client = ?", m.Client)
+	}
+
+	if m.Tenant != "" {
+		uq = uq.Where("tenent = ?", m.Tenant)
+	}
+
+	_, err := uq.Returning("").Exec(ctx)
+
+	return err
+}
+
 // Get
 func (m *Transaction) Get(ctx context.Context) error {
-	return runtime.DB.NewSelect().Model(m).Scan(ctx)
+	sq := runtime.DB.NewSelect().Model(m)
+	if m.ID != "" {
+		sq = sq.Where("id = ?", m.ID)
+	}
+
+	if m.Client != "" {
+		sq = sq.Where("client = ?", m.Client)
+	}
+
+	if m.Tenant != "" {
+		sq = sq.Where("tenent = ?", m.Tenant)
+	}
+
+	err := sq.Limit(1).Scan(ctx)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		runtime.Logger.Errorf("get transaction failed : %s", err.Error())
+	}
+
+	return err
+}
+
+// List: list transaction by given conditions
+func (m *Transaction) List(ctx context.Context) error {
+	return nil
 }
 
 // Debug

@@ -40,10 +40,11 @@ func InitCreditCard() *Card {
 		SuccessHandler: jwtSuccessHandler,
 		ErrorHandler:   jwtErrorHandler,
 	}))
-	CardG.Post("/", h.add).Name("CreditCardPost")
-	CardG.Delete("/:id", h.delete).Name("CreditCardDelete")
-	CardG.Get("/list", h.list).Name("CreditCardGetList")
-	CardG.Get("/:id", h.get).Name("CreditCardGet")
+	CardG.Post("/", h.add).Name("CardPost")
+	CardG.Delete("/:id", h.delete).Name("CardDelete")
+	CardG.Get("/list", h.list).Name("CardGetList")
+	CardG.Get("/:id", h.get).Name("CardGet")
+	CardG.Put("/:id", h.update).Name("CardUpdate")
 
 	h.svcCard = service.NewCard()
 
@@ -229,6 +230,11 @@ func (h *Card) list(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(utils.WrapResponse(cards))
+}
+
+// update: Update card information
+func (h *Card) update(c *fiber.Ctx) error {
+	return nil
 }
 
 /* }}} */

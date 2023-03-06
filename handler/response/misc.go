@@ -22,6 +22,7 @@ const (
 	CodeEncodeFailed           = 20500001
 	CodeDecodeFailed           = 20500002
 	CodeTargetNotFound         = 20404001
+	CodeTimeout                = 20408001
 )
 
 const (
@@ -32,6 +33,7 @@ const (
 	MsgEncodeFailed           = "Encode failed"
 	MsgDecodeFailed           = "Decode failed"
 	MsgTargetNotFound         = "Target not found"
+	MsgTimeout                = "Timeout"
 )
 
 /* }}} */

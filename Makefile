@@ -55,7 +55,11 @@ ifndef GIT
 	GIT=git
 endif
 
-ifndef docker
+ifndef SWAG
+	SWAG=swag
+endif
+
+ifndef DOCKER
 	DOCKER=docker
 endif
 
@@ -64,11 +68,11 @@ BINARY_DIR=$(PREFIX)/bin
 BINARY_LINKER_SVC=svc
 DOCKER_TAG=useccr.ccs.tencentyun.com/icepay/svc:latest
 
-.PHONY: all summary svc test upgrade docker push
+.PHONY: all summary svc test upgrade doc docker push
 .DEFAULT: all
 
 # Targets
-all: summary fmt svc
+all: summary fmt doc svc
 
 summary:
 	@printf "\033[1;37m  == \033[1;32m$(PROJECT) \033[1;33m$(VERSION) \033[1;37m==\033[0m\n"
@@ -103,6 +107,11 @@ upgrade:
 	@printf "\033[1;36m  Upgrading dependences ...\033[0m\n"
 	@GOOS=$(OS) GOARCH=$(ARCH) $(GO) get -u ./...
 	@GOOS=$(OS) GOARCH=$(ARCH) $(GO) mod tidy
+	@echo
+
+doc:
+	@printf "\033[1;36m  Generating swagger docs ...\033[0m\n"
+	@$(SWAG) init
 	@echo
 
 docker:

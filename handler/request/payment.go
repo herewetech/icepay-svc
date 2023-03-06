@@ -20,6 +20,10 @@ type PaymentPost struct {
 	Detail     string `json:"detail" xml:"detail"`
 }
 
+type PaymentPut struct {
+	Status string `json:"status" xml:"status"`
+}
+
 /*
  * Local variables:
  * tab-width: 4

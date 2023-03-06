@@ -15,7 +15,11 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"icepay-svc/model"
+	"icepay-svc/runtime"
+	"time"
 )
 
 const (
@@ -54,6 +58,87 @@ func (s *Transaction) Create(ctx context.Context, input *model.Transaction) (*mo
 	}
 
 	return transaction, nil
+}
+
+// Update
+func (s *Transaction) Update(ctx context.Context, input *model.Transaction) (*model.Transaction, error) {
+	transaction := &model.Transaction{
+		ID:     input.ID,
+		Client: input.Client,
+		Tenant: input.Tenant,
+		Status: input.Status,
+	}
+
+	if transaction.Status == "" {
+		transaction.Status = TransactionStatusClosed
+	}
+
+	err := transaction.Update(ctx)
+	if err != nil {
+		return nil, nil
+	}
+
+	return transaction, nil
+}
+
+// Get
+func (s *Transaction) Get(ctx context.Context, input *model.Transaction) (*model.Transaction, error) {
+	transaction := &model.Transaction{
+		ID:     input.ID,
+		Client: input.Client,
+		Tenant: input.Tenant,
+	}
+
+	err := transaction.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return transaction, nil
+}
+
+// List
+func (s *Transaction) List(ctx context.Context, input *model.Transaction) ([]*model.Transaction, error) {
+	return nil, nil
+}
+
+// Notify
+func (s *Transaction) Notify(ctx context.Context, input *model.Transaction) error {
+	sub := ""
+	switch input.Status {
+	case TransactionStatusPreCreate, TransactionStatusCreated:
+		sub = "pay::client::" + input.Client
+	case TransactionStatusComfirmed, TransactionStatusAborted:
+		sub = "pay::client::" + input.Tenant
+	}
+
+	if sub == "" {
+		// Do nothing
+		return errors.New("No notification needed")
+	}
+
+	b, _ := json.Marshal(input)
+
+	return runtime.Nats.Publish(sub, b)
+}
+
+// Wait
+func (s *Transaction) Wait(ctx context.Context, subscriber, subscriberType string) (*model.Transaction, error) {
+	sub := "pay::" + subscriberType + "::" + subscriber
+	suber, err := runtime.Nats.SubscribeSync(sub)
+	if err != nil {
+		return nil, err
+	}
+
+	msg, err := suber.NextMsg(time.Duration(runtime.Config.HTTP.LongPollingTimeout) * time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	output := new(model.Transaction)
+	json.Unmarshal(msg.Data, &output)
+
+	return output, nil
 }
 
 /* }}} */
