@@ -42,9 +42,9 @@ type Tenant struct {
 func (m *Tenant) Create(ctx context.Context) error {
 	_, err := runtime.DB.NewInsert().Model(m).Exec(ctx)
 	if err == nil {
-		runtime.Logger.Infof("client [%s] created", m.ID)
+		runtime.Logger.Infof("tenent [%s] created", m.ID)
 	} else {
-		runtime.Logger.Errorf("create client failed : %s", err.Error())
+		runtime.Logger.Errorf("create tenent failed : %s", err.Error())
 	}
 
 	return err
@@ -52,9 +52,22 @@ func (m *Tenant) Create(ctx context.Context) error {
 
 // Get: gets client
 func (m *Tenant) Get(ctx context.Context) error {
-	err := runtime.DB.NewSelect().Model(m).Scan(ctx)
+	sq := runtime.DB.NewSelect().Model(m)
+	if m.ID != "" {
+		sq = sq.Where("id = ?", m.ID)
+	}
+
+	if m.Email != "" {
+		sq = sq.Where("email = ?", m.Email)
+	}
+
+	if m.Phone != "" {
+		sq = sq.Where("phone = ?", m.Phone)
+	}
+
+	err := sq.Limit(1).Scan(ctx)
 	if err != nil {
-		runtime.Logger.Errorf("get client failed : %s", err.Error())
+		runtime.Logger.Errorf("get tenent failed : %s", err.Error())
 	}
 
 	return err

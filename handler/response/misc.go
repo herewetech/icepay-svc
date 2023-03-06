@@ -16,6 +16,7 @@ package response
 /* {{{ [Response codes && messages] */
 const (
 	CodeInvalidEmailOrPassword = 20400001
+	CodeInvalidParameter       = 20400002
 	CodeAuthFailed             = 20401001
 	CodeAuthInternal           = 20401500
 	CodeAuthInformationMissing = 20401404
@@ -27,6 +28,7 @@ const (
 
 const (
 	MsgInvalidEmailOrPassword = "Invalid email or password"
+	MsgInvalidParameter       = "Invalid parameter"
 	MsgAuthFailed             = "Authorization failed"
 	MsgAuthInternal           = "Authorization internal error"
 	MsgAuthInformationMissing = "Authorization information missing"

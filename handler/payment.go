@@ -22,6 +22,7 @@ import (
 	"icepay-svc/runtime"
 	"icepay-svc/service"
 	"icepay-svc/utils"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
@@ -31,6 +32,8 @@ import (
 type Payment struct {
 	svcTransaction *service.Transaction
 	svcCredential  *service.Credential
+	svcAuth        *service.Auth
+	svcCard        *service.Card
 }
 
 func InitPayment() *Payment {
@@ -45,12 +48,14 @@ func InitPayment() *Payment {
 	paymentG.Post("/", h.add).Name("PaymentPost")
 	paymentG.Put("/:id", h.update).Name("PaymentPut")
 	paymentG.Get("/list", h.list).Name("PaymentGetList")
-	paymentG.Get("/:id", h.get).Name("PaymentGet")
 	paymentG.Get("/status", h.status).Name("PaymentGetStatus")
+	paymentG.Get("/:id", h.get).Name("PaymentGet")
 	paymentG.Put("/:id", h.update).Name("PaymentPut")
 
 	h.svcTransaction = service.NewTransaction()
 	h.svcCredential = service.NewCredential()
+	h.svcAuth = service.NewAuth()
+	h.svcCard = service.NewCard()
 
 	return h
 }
@@ -139,6 +144,16 @@ func (h *Payment) update(c *fiber.Ctx) error {
 		return err
 	}
 
+	req.Status = strings.ToUpper(req.Status)
+	if req.Status != service.TransactionStatusComfirmed && req.Status != service.TransactionStatusAborted {
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodeInvalidParameter
+		resp.Message = response.MsgInvalidParameter
+		resp.Status = fiber.StatusBadRequest
+
+		return c.Status(fiber.StatusBadRequest).JSON(resp)
+	}
+
 	id, _ := c.Locals("AuthID").(string)
 	t, _ := c.Locals("AuthType").(string)
 	if id == "" || t != "client" {
@@ -150,15 +165,62 @@ func (h *Payment) update(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(resp)
 	}
 
-	transaction, err := h.svcTransaction.Update(c.Context(), &model.Transaction{
+	hint := &model.Transaction{
 		ID:     c.Params("id"),
 		Status: req.Status,
-	})
+	}
+	if req.Status == service.TransactionStatusComfirmed {
+		// Check payment password
+		checked, _ := h.svcAuth.CheckPaymentPassword(id, req.PaymentPassword)
+		if !checked {
+			// Password mismatch
+			runtime.Logger.Warnf("client [%s] try to confirm transaction [%s] with wrong password", id, hint.ID)
+			resp := utils.WrapResponse(nil)
+			resp.Code = response.CodePaymentUpdateFailed
+			resp.Message = response.MsgPaymentUpdateFailed
+			resp.Status = fiber.StatusUnauthorized
+
+			return c.Status(fiber.StatusUnauthorized).JSON(resp)
+		}
+
+		// Check card
+		card, _ := h.svcCard.Get(c.Context(), &model.Card{
+			ID:        req.Card,
+			OwnerID:   id,
+			OwnerType: t,
+		})
+		if card == nil {
+			// Not your card
+			runtime.Logger.Warnf("client [%s] try to update transaction [%s] with invalid card [%s]", id, hint.ID, req.Card)
+			resp := utils.WrapResponse(nil)
+			resp.Code = response.CodePaymentUpdateFailed
+			resp.Message = response.MsgPaymentUpdateFailed
+			resp.Status = fiber.StatusBadRequest
+
+			return c.Status(fiber.StatusBadRequest).JSON(resp)
+		}
+
+		hint.Card = card.ID
+	}
+
+	transaction, err := h.svcTransaction.Update(c.Context(), hint)
 	if err != nil {
 		runtime.Logger.Errorf("update payment failed : %s", err)
 		resp := utils.WrapResponse(nil)
 		resp.Code = response.CodePaymentUpdateFailed
 		resp.Message = response.MsgPaymentUpdateFailed
+		resp.Status = fiber.StatusInternalServerError
+
+		return c.Status(fiber.StatusInternalServerError).JSON(resp)
+	}
+
+	// Create notification
+	err = h.svcTransaction.Notify(c.Context(), transaction)
+	if err != nil {
+		runtime.Logger.Errorf("payment notify failed : %s", err)
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodePaymentNotifyFailed
+		resp.Message = response.MsgPaymentNotifyFailed
 		resp.Status = fiber.StatusInternalServerError
 
 		return c.Status(fiber.StatusInternalServerError).JSON(resp)
@@ -205,7 +267,7 @@ func (h *Payment) get(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusNotFound).JSON(resp)
 		}
 
-		runtime.Logger.Warnf("get payment failed : %s", err)
+		runtime.Logger.Errorf("get payment failed : %s", err)
 		resp.Code = response.CodePaymentGetFailed
 		resp.Message = response.MsgPaymentGetFailed
 		resp.Status = fiber.StatusInternalServerError
@@ -228,7 +290,54 @@ func (h *Payment) get(c *fiber.Ctx) error {
 
 // list: List payment for client / tenant
 func (h *Payment) list(c *fiber.Ctx) error {
-	return nil
+	id, _ := c.Locals("AuthID").(string)
+	t, _ := c.Locals("AuthType").(string)
+	if id == "" || (t != "client" && t != "tenant") {
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodeAuthInformationMissing
+		resp.Message = response.MsgAuthInformationMissing
+		resp.Status = fiber.StatusBadRequest
+
+		return c.Status(fiber.StatusBadRequest).JSON(resp)
+	}
+
+	input := &model.Transaction{
+		ID: c.Params("id"),
+	}
+	if t == "client" {
+		input.Client = id
+	} else {
+		input.Tenant = id
+	}
+
+	ret, err := h.svcTransaction.List(c.Context(), input)
+	if err != nil {
+		runtime.Logger.Errorf("get payment list failed : %s", err)
+		resp := utils.WrapResponse(nil)
+		resp.Code = response.CodePaymentListFailed
+		resp.Message = response.MsgPaymentListFailed
+		resp.Status = fiber.StatusInternalServerError
+
+		return c.Status(fiber.StatusInternalServerError).JSON(resp)
+	}
+
+	payments := &response.PaymentGetList{
+		Total: len(ret),
+		List:  make([]*response.PaymentGet, len(ret)),
+	}
+	for idx, payment := range ret {
+		payments.List[idx] = &response.PaymentGet{
+			ID:       payment.ID,
+			Client:   payment.Client,
+			Tenant:   payment.Tenant,
+			Amount:   payment.Amount,
+			Currency: payment.Currency,
+			Status:   payment.Status,
+			Detail:   payment.Detail,
+		}
+	}
+
+	return c.JSON(utils.WrapResponse(payments))
 }
 
 // status: long-pull status event

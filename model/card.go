@@ -93,9 +93,9 @@ func (m *Card) List(ctx context.Context) ([]*Card, error) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return cards, nil
-		} else {
-			return nil, err
 		}
+
+		return nil, err
 	}
 
 	return cards, nil

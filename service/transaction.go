@@ -67,6 +67,7 @@ func (s *Transaction) Update(ctx context.Context, input *model.Transaction) (*mo
 		Client: input.Client,
 		Tenant: input.Tenant,
 		Status: input.Status,
+		Card:   input.Card,
 	}
 
 	if transaction.Status == "" {
@@ -87,6 +88,7 @@ func (s *Transaction) Get(ctx context.Context, input *model.Transaction) (*model
 		ID:     input.ID,
 		Client: input.Client,
 		Tenant: input.Tenant,
+		Status: input.Status,
 	}
 
 	err := transaction.Get(ctx)
@@ -99,7 +101,18 @@ func (s *Transaction) Get(ctx context.Context, input *model.Transaction) (*model
 
 // List
 func (s *Transaction) List(ctx context.Context, input *model.Transaction) ([]*model.Transaction, error) {
-	return nil, nil
+	transaction := &model.Transaction{
+		Client: input.Client,
+		Tenant: input.Tenant,
+		Status: input.Status,
+	}
+
+	list, err := transaction.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
 }
 
 // Notify

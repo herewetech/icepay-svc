@@ -58,7 +58,20 @@ func (m *Client) Create(ctx context.Context) error {
 
 // Get: gets client
 func (m *Client) Get(ctx context.Context) error {
-	err := runtime.DB.NewSelect().Model(m).Scan(ctx)
+	sq := runtime.DB.NewSelect().Model(m)
+	if m.ID != "" {
+		sq = sq.Where("id = ?", m.ID)
+	}
+
+	if m.Email != "" {
+		sq = sq.Where("email = ?", m.Email)
+	}
+
+	if m.Phone != "" {
+		sq = sq.Where("phone = ?", m.Phone)
+	}
+
+	err := sq.Limit(1).Scan(ctx)
 	if err != nil {
 		runtime.Logger.Errorf("get client failed : %s", err.Error())
 	}

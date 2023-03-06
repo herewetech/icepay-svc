@@ -93,6 +93,14 @@ func (s *Auth) JWTValid(ts string) (jwt.MapClaims, error) {
 	return nil, fmt.Errorf("Invalid claims format")
 }
 
+func (s *Auth) CheckPassword(target, targetType, password string) (bool, error) {
+	return true, nil
+}
+
+func (s *Auth) CheckPaymentPassword(client, password string) (bool, error) {
+	return true, nil
+}
+
 /* }}} */
 
 /*

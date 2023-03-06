@@ -55,7 +55,10 @@ type PaymentGet struct {
 	Detail   string `json:"detail" xml:"detail"`
 }
 
-type PaymentGetList struct{}
+type PaymentGetList struct {
+	List  []*PaymentGet `json:"list" xml:"list"`
+	Total int           `json:"total" xml:"total"`
+}
 
 /*
  * Local variables:

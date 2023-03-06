@@ -33,6 +33,7 @@ type Transaction struct {
 	Amount        int64  `bun:"amount,notnull" json:"amount"`
 	Currency      string `bun:"currency,notnull" json:"currency"`
 	Status        string `bun:"status" json:"status"`
+	Card          string `bun:"card" json:"card"`
 	Detail        string `bun:"detail" json:"detail"`
 
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -59,6 +60,10 @@ func (m *Transaction) Create(ctx context.Context) error {
 // Update: updates transcation
 func (m *Transaction) Update(ctx context.Context) error {
 	uq := runtime.DB.NewUpdate().Model(m).Set("status = ?", m.Status).Set("updated_at = CURRENT_TIMESTAMP")
+	if m.Card != "" {
+		uq = uq.Set("card = ?", m.Card)
+	}
+
 	if m.ID != "" {
 		uq = uq.Where("id = ?", m.ID)
 	}
@@ -91,17 +96,48 @@ func (m *Transaction) Get(ctx context.Context) error {
 		sq = sq.Where("tenent = ?", m.Tenant)
 	}
 
+	if m.Status != "" {
+		sq = sq.Where("status = ?", m.Status)
+	}
+
 	err := sq.Limit(1).Scan(ctx)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		runtime.Logger.Errorf("get transaction failed : %s", err.Error())
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			runtime.Logger.Warnf("transaction does not exists")
+		} else {
+			runtime.Logger.Errorf("get transaction failed : %s", err.Error())
+		}
 	}
 
 	return err
 }
 
 // List: list transaction by given conditions
-func (m *Transaction) List(ctx context.Context) error {
-	return nil
+func (m *Transaction) List(ctx context.Context) ([]*Transaction, error) {
+	var transactions []*Transaction
+	sq := runtime.DB.NewSelect().Model(&transactions)
+	if m.Client != "" {
+		sq = sq.Where("client = ?", m.Client)
+	}
+
+	if m.Tenant != "" {
+		sq = sq.Where("tenant = ?", m.Tenant)
+	}
+
+	if m.Status != "" {
+		sq = sq.Where("status = ?", m.Status)
+	}
+
+	err := sq.Scan(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return transactions, nil
+		}
+
+		return nil, err
+	}
+
+	return transactions, nil
 }
 
 // Debug

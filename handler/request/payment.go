@@ -21,7 +21,9 @@ type PaymentPost struct {
 }
 
 type PaymentPut struct {
-	Status string `json:"status" xml:"status"`
+	PaymentPassword string `json:"payment_password" xml:"payment_password"`
+	Card            string `json:"card" xml:"card"`
+	Status          string `json:"status" xml:"status"`
 }
 
 /*
