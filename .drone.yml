@@ -7,6 +7,7 @@ steps:
     image: golang:alpine
     commands:
       - "apk add make git"
+      - "make swag"
       - "make"
 
   - name: docker
