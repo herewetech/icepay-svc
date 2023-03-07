@@ -77,6 +77,9 @@ func (m *Transaction) Update(ctx context.Context) error {
 	}
 
 	_, err := uq.Returning("").Exec(ctx)
+	if err != nil {
+		runtime.Logger.Errorf("Update transaction failed : %s", err)
+	}
 
 	return err
 }
@@ -105,7 +108,7 @@ func (m *Transaction) Get(ctx context.Context) error {
 		if errors.Is(err, sql.ErrNoRows) {
 			runtime.Logger.Warnf("transaction does not exists")
 		} else {
-			runtime.Logger.Errorf("get transaction failed : %s", err.Error())
+			runtime.Logger.Errorf("get transaction failed : %s", err)
 		}
 	}
 

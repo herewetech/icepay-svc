@@ -44,7 +44,7 @@ func (m *Tenant) Create(ctx context.Context) error {
 	if err == nil {
 		runtime.Logger.Infof("tenent [%s] created", m.ID)
 	} else {
-		runtime.Logger.Errorf("create tenent failed : %s", err.Error())
+		runtime.Logger.Errorf("create tenent failed : %s", err)
 	}
 
 	return err
@@ -67,7 +67,7 @@ func (m *Tenant) Get(ctx context.Context) error {
 
 	err := sq.Limit(1).Scan(ctx)
 	if err != nil {
-		runtime.Logger.Errorf("get tenent failed : %s", err.Error())
+		runtime.Logger.Errorf("get tenent failed : %s", err)
 	}
 
 	return err

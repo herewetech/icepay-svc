@@ -57,6 +57,19 @@ func InitTenant() *Tenant {
 /* {{{ [Routers] - Definitions */
 
 // token : Get JWT token
+
+// @Tags Tenant
+// @Summary Get authorize token of tenant
+// @Description 通过client的身份（登录）获取认证信息，包括access_token和refresh_token两个jwt
+// @ID TenantPostToken
+// @Produce json
+// @Param data body request.ClientPostToken true "Input information"
+// @Success 201 {object} response.TenantPostToken
+// @Failure 422 string message
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Failure 401 {object} nil
+// @Router /tenant/token [post]
 func (h *Tenant) token(c *fiber.Ctx) error {
 	var req request.TenantPostToken
 	err := c.BodyParser(&req)
@@ -151,7 +164,17 @@ func (h *Tenant) token(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
-// refresh : Refresh JWT token
+// refresh: Refresh JWT token
+
+// @Tags Tenant
+// @Summary Refresh access_token via refresh_token
+// @Description 使用refresh_token获取新的access_token，避免客户端重复登录
+// @ID TenantPostRefresh
+// @Produce json
+// @Success 201 {object} response.TenantPostRefresh
+// @Failure 401 {object} nil
+// @Failure 500 {object} nil
+// @Router /tenant/refresh [post]
 func (h *Tenant) refresh(c *fiber.Ctx) error {
 	auth := c.Get("Authorization")
 	if len(auth) < 8 || strings.ToLower(auth[0:7]) != "bearer " {
@@ -202,11 +225,33 @@ func (h *Tenant) refresh(c *fiber.Ctx) error {
 }
 
 // changePassword: Change password
+
+// @Tags Tenant
+// @Summary Change password
+// @Description 修改登录密码
+// @ID TenantPutPassword
+// @Produce json
+// @Param data body request.TenantPutPassword true "input information"
+// @Success 200 {object} response.TenantPutPassword
+// @Failure 422 string message
+// @Failure 400 {object} nil
+// @Failure 401 {object} nil
+// @Failure 500 {object} nil
+// @Router /tenant/password [put]
 func (h *Tenant) changePassword(c *fiber.Ctx) error {
 	return nil
 }
 
 // me: Get myself
+
+// @Tags Tenant
+// @Summary Show me
+// @Description 解析access_token，返回当前验证者信息（脱敏）
+// @ID TenantGetMe
+// @Produce json
+// @Success 200 {object} nil
+// @Failure 500 {object} nil
+// @Router /tenant/me [get]
 func (h *Tenant) me(c *fiber.Ctx) error {
 	user, ok := c.Locals("user").(*jwt.Token)
 	if !ok {

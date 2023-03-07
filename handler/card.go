@@ -54,6 +54,18 @@ func InitCreditCard() *Card {
 /* {{{ [Routers] - Definitions */
 
 // add: Add card to client
+
+// @Tags Card
+// @Summary Add bank card
+// @Description 添加银行卡，自动识别信用卡或借记卡(debit)。当返回的卡片类型不是借记卡时，可进一步调用update设置信用卡信息（持卡人、有效期、CVV）。
+// @ID CardPost
+// @Produce json
+// @Param data body request.CardPost true "Input information"
+// @Success 201 {object} response.CardPost
+// @Failure 422 string message
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Router /card [post]
 func (h *Card) add(c *fiber.Ctx) error {
 	var req request.CardPost
 	err := c.BodyParser(&req)
@@ -101,6 +113,17 @@ func (h *Card) add(c *fiber.Ctx) error {
 }
 
 // delete: Remove card from client
+
+// @Tags Card
+// @Summary Delete bank card
+// @Description 移除银行卡，只对当前验证者自己的卡生效
+// @ID CardDelete
+// @Produce json
+// @Success 200 {object} nil
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Failure 404 {object} nil 卡片不存在
+// @Router /card/{:id} [delete]
 func (h *Card) delete(c *fiber.Ctx) error {
 	cardID := c.Params("id")
 	id, _ := c.Locals("AuthID").(string)
@@ -144,6 +167,17 @@ func (h *Card) delete(c *fiber.Ctx) error {
 }
 
 // get: Get card by given id
+
+// @Tags Card
+// @Summary Get bank card information
+// @Description 获取银行卡信息，只对当前验证者自己的卡有效
+// @ID CardGet
+// @Produce json
+// @Success 200 {object} response.CardGet
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Failure 404 {object} nil 卡片不存在
+// @Router /card/{:id} [get]
 func (h *Card) get(c *fiber.Ctx) error {
 	cardID := c.Params("id")
 	id, _ := c.Locals("AuthID").(string)
@@ -191,6 +225,16 @@ func (h *Card) get(c *fiber.Ctx) error {
 }
 
 // list: Get cards (list) of current login client
+
+// @Tags Card
+// @Summary Get bank cards list
+// @Description 获取银行卡列表，限制范围是当前验证者所属
+// @ID CardGetList
+// @Produce json
+// @Success 200 {object} []response.CardGet
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Router /card/list [get]
 func (h *Card) list(c *fiber.Ctx) error {
 	id, _ := c.Locals("AuthID").(string)
 	t, _ := c.Locals("AuthType").(string)
@@ -233,6 +277,19 @@ func (h *Card) list(c *fiber.Ctx) error {
 }
 
 // update: Update card information
+
+// @Tags Card
+// @Summary Update bank (credit) card
+// @Description 更新银行卡（信用卡）信息
+// @ID CardUpdate
+// @Produce json
+// @Param data body request.CardUpdate true "Input information"
+// @Success 200 {object} nil
+// @Failure 422 string message
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Failure 404 {object} nil 卡片不存在
+// @Router /card/{:id} [put]
 func (h *Card) update(c *fiber.Ctx) error {
 	return nil
 }

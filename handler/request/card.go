@@ -23,6 +23,12 @@ type CardGet struct{}
 
 type CardGetList struct{}
 
+type CardUpdate struct {
+	Holder     string `json:"holder" xml:"holder"`
+	Expiration string `json:"expiration" xml:"expiration"`
+	CVV        string `json:"cvv" xml:"cvv"`
+}
+
 /*
  * Local variables:
  * tab-width: 4

@@ -15,6 +15,7 @@ package handler
 
 import (
 	"errors"
+	_ "icepay-svc/docs"
 	"icepay-svc/handler/response"
 	"icepay-svc/runtime"
 	"icepay-svc/utils"
@@ -38,10 +39,28 @@ func InitMisc() *Misc {
 	return h
 }
 
+// index
+
+// @Tags Misc
+// @Summary Just an empty portal
+// @Description 一个不返回任何有效数据的路由，用于展示JSON envelope
+// @ID Index
+// @Produce json
+// @Success 200 {object} nil
+// @Router / [get]
 func (h *Misc) index(c *fiber.Ctx) error {
 	return c.JSON(utils.WrapResponse(nil))
 }
 
+// routers
+
+// @Tags Misc
+// @Summary Get HTTP routers
+// @Description 返回路由列表，由go-fiber自动生成
+// @ID GetRouters
+// @Produce json
+// @Success 200 {object} nil
+// @Router /routers [get]
 func (h *Misc) routers(c *fiber.Ctx) error {
 	return c.JSON(utils.WrapResponse(runtime.Server.Stack()))
 }

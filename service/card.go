@@ -67,6 +67,27 @@ func (s *Card) Delete(ctx context.Context, input *model.Card) error {
 	return card.Delete(ctx)
 }
 
+// Update
+func (s *Card) Update(ctx context.Context, input *model.Card) (*model.Card, error) {
+	card := &model.Card{
+		ID:         input.ID,
+		OwnerID:    input.OwnerID,
+		OwnerType:  input.OwnerType,
+		Number:     input.Number,
+		CardType:   input.CardType,
+		CVV:        input.CVV,
+		Expiration: input.Expiration,
+		Holder:     input.Holder,
+	}
+
+	err := card.Update(ctx)
+	if err != nil {
+		return nil, nil
+	}
+
+	return card, nil
+}
+
 // Get
 func (s *Card) Get(ctx context.Context, input *model.Card) (*model.Card, error) {
 	card := &model.Card{

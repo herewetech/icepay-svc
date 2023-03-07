@@ -68,7 +68,7 @@ BINARY_DIR=$(PREFIX)/bin
 BINARY_LINKER_SVC=svc
 DOCKER_TAG=useccr.ccs.tencentyun.com/icepay/svc:latest
 
-.PHONY: all summary svc test upgrade doc docker push
+.PHONY: all summary svc test upgrade swag doc docker push
 .DEFAULT: all
 
 # Targets
@@ -109,9 +109,12 @@ upgrade:
 	@GOOS=$(OS) GOARCH=$(ARCH) $(GO) mod tidy
 	@echo
 
+swag:
+	@$(GO) install github.com/swaggo/swag/cmd/swag@latest
+
 doc:
 	@printf "\033[1;36m  Generating swagger docs ...\033[0m\n"
-	@$(SWAG) init
+	@$(SWAG) init -d ./,./handler
 	@echo
 
 docker:

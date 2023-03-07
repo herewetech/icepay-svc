@@ -22,14 +22,6 @@ import (
 )
 
 func actionServe(c *cli.Context) error {
-	/*
-		// Check database table
-		if model.CheckRecordTable() != nil {
-			// InitDB
-			runtime.Logger.Warn("Database does not initialized, try to create tables")
-			actionInitdb(c)
-		}
-	*/
 	handler.InitMisc()
 	handler.InitClient()
 	handler.InitTenant()
@@ -40,12 +32,22 @@ func actionServe(c *cli.Context) error {
 }
 
 func actionInitdb(c *cli.Context) error {
-	//model.InitRecord()
-
+	// We do not initialize database here
+	// Run php bin/console doctrine:schema:update --force --complete in icepay-admin
 	return nil
 }
 
 // Portal
+
+// @title icePay Demo API
+// @version 0.0.1
+// @description icePay Demo API
+// @contact.name HereweTech CO.LTD
+// @contact.url https://herewe.tech
+// @contact.email support@herewetech.com
+
+// @host api.icepay.herewe.tech
+// @BasePath /
 func main() {
 	runtime.LoadConfig()
 	runtime.InitLogger()
@@ -72,7 +74,7 @@ func main() {
 
 	// Startup app
 	if err := app.Run(os.Args); err != nil {
-		runtime.Logger.Fatal(err.Error())
+		runtime.Logger.Fatal(err)
 	}
 }
 

@@ -50,7 +50,7 @@ func (m *Client) Create(ctx context.Context) error {
 	if err == nil {
 		runtime.Logger.Infof("client [%s] created", m.ID)
 	} else {
-		runtime.Logger.Errorf("create client failed : %s", err.Error())
+		runtime.Logger.Errorf("create client failed : %s", err)
 	}
 
 	return err
@@ -73,7 +73,7 @@ func (m *Client) Get(ctx context.Context) error {
 
 	err := sq.Limit(1).Scan(ctx)
 	if err != nil {
-		runtime.Logger.Errorf("get client failed : %s", err.Error())
+		runtime.Logger.Errorf("get client failed : %s", err)
 	}
 
 	return err

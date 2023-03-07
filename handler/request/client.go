@@ -20,6 +20,16 @@ type ClientPostToken struct {
 
 type ClientPostRefresh struct{}
 
+type ClientPutPassword struct {
+	OldPassword string `json:"old_password" xml:"old_password"`
+	NewPassword string `json:"new_password" xml:"new_password"`
+}
+
+type ClientPutPaymentPassword struct {
+	OldPassword string `json:"old_password" xml:"old_password"`
+	NewPassword string `json:"new_password" xml:"new_password"`
+}
+
 /*
  * Local variables:
  * tab-width: 4

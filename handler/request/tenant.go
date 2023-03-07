@@ -20,6 +20,11 @@ type TenantPostToken struct {
 
 type TenantPostRefresh struct{}
 
+type TenantPutPassword struct {
+	OldPassword string `json:"old_password" xml:"old_password"`
+	NewPassword string `json:"new_password" xml:"new_password"`
+}
+
 /*
  * Local variables:
  * tab-width: 4

@@ -61,7 +61,7 @@ func (s *Auth) JWTSign(sign *Sign) (*JWT, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ts, err := token.SignedString([]byte(runtime.Config.Auth.JWTAccessSecret))
 	if err != nil {
-		runtime.Logger.Errorf("sign JWT token failed : %s", err.Error())
+		runtime.Logger.Errorf("sign JWT token failed : %s", err)
 
 		return nil, err
 	}

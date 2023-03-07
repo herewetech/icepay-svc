@@ -63,6 +63,18 @@ func InitPayment() *Payment {
 /* {{{ [Routers] - Definitions */
 
 // add: Create new payment
+
+// @Tags Payment
+// @Summary Create payment flow
+// @Description 创建支付订单
+// @ID PaymentPost
+// @Produce json
+// @Param data body request.PaymentPost true "Input information"
+// @Success 201 {object} response.PaymentPost
+// @Failure 422 string message
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Router /payment [post]
 func (h *Payment) add(c *fiber.Ctx) error {
 	var req request.PaymentPost
 	err := c.BodyParser(&req)
@@ -91,7 +103,7 @@ func (h *Payment) add(c *fiber.Ctx) error {
 		resp.Message = response.MsgDecodeFailed
 		resp.Status = fiber.StatusInternalServerError
 
-		runtime.Logger.Warnf("AES decrypt failed : %s", err.Error())
+		runtime.Logger.Warnf("AES decrypt failed : %s", err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(resp)
 	}
@@ -134,6 +146,18 @@ func (h *Payment) add(c *fiber.Ctx) error {
 }
 
 // update: Update payment status
+
+// @Tags Payment
+// @Summary Update payment status
+// @Description 更新支付订单状态（确认支付或放弃）
+// @ID PaymentPost
+// @Produce json
+// @Param data body request.PaymentPut true "input information"
+// @Success 200 {object} response.PaymentPut
+// @Failure 422 string message
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Router /payment/{:id} [put]
 func (h *Payment) update(c *fiber.Ctx) error {
 	var req request.PaymentPut
 	err := c.BodyParser(&req)
@@ -235,6 +259,17 @@ func (h *Payment) update(c *fiber.Ctx) error {
 }
 
 // get: Get payment by id
+
+// @Tags Payment
+// @Summary Get payment information
+// @Description 获取支付订单信息
+// @ID PaymentGet
+// @Produce json
+// @Success 200 {object} response.PaymentGet
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Failure 404 {object} nil 订单不存在
+// @Router /payment/{:id} [get]
 func (h *Payment) get(c *fiber.Ctx) error {
 	id, _ := c.Locals("AuthID").(string)
 	t, _ := c.Locals("AuthType").(string)
@@ -289,6 +324,16 @@ func (h *Payment) get(c *fiber.Ctx) error {
 }
 
 // list: List payment for client / tenant
+
+// @Tags Payment
+// @Summary Get payment list
+// @Description 获取支付订单列表，范围为当前认证者
+// @ID PaymentGetList
+// @Produce json
+// @Success 200 {array} response.PaymentGet
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Router /payment/list [get]
 func (h *Payment) list(c *fiber.Ctx) error {
 	id, _ := c.Locals("AuthID").(string)
 	t, _ := c.Locals("AuthType").(string)
@@ -341,6 +386,17 @@ func (h *Payment) list(c *fiber.Ctx) error {
 }
 
 // status: long-pull status event
+
+// @Tags Payment
+// @Summary Get (wait) payment status event
+// @Description 获取（等待）订单状态变化。该请求为延时请求，挂起等待与当前验证者相关的订单，如果发生状态改变，返回订单信息，如果等待超时（默认30秒）则返回一个HTTP 408错误，客户端可选择重新发起一个新请求
+// @ID PaymentGetStatus
+// @Produce json
+// @Success 200 {object} response.PaymentGet
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Failure 408 {object} nil
+// @Router /payment/status [get]
 func (h *Payment) status(c *fiber.Ctx) error {
 	id, _ := c.Locals("AuthID").(string)
 	t, _ := c.Locals("AuthType").(string)

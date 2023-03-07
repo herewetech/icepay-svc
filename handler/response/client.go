@@ -44,6 +44,14 @@ type ClientPostRefresh struct {
 	TokenType    string `json:"token_type" xml:"token_type"`
 }
 
+type ClientPutPassword struct {
+	Changed bool `json:"changed" xml:"changed"`
+}
+
+type ClientPutPaymentPassword struct {
+	Changed bool `json:"changed" xml:"changed"`
+}
+
 type ClientGetMe struct {
 	ID    string `json:"id" xml:"id"`
 	Email string `json:"email" xml:"email"`

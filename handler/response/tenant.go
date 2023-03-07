@@ -44,6 +44,10 @@ type TenantPostRefresh struct {
 	TokenType    string `json:"token_type" xml:"token_type"`
 }
 
+type TenantPutPassword struct {
+	Changed bool `json:"changed" xml:"changed"`
+}
+
 type TenantGetMe struct {
 	ID    string `json:"id" xml:"id"`
 	Email string `json:"email" xml:"email"`

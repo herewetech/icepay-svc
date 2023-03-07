@@ -49,6 +49,7 @@ func InitClient() *Client {
 		ErrorHandler:   jwtErrorHandler,
 	}))
 	clientG.Put("/password", h.changePassword).Name("ClientPutPassword")
+	clientG.Put("/payment-password", h.changePaymentPassword).Name("ClientPutPaymentPassword")
 	clientG.Get("/me", h.me).Name("ClientGetMe")
 
 	clientG.Get("/credential", h.credential).Name("ClientGetCredential")
@@ -62,6 +63,19 @@ func InitClient() *Client {
 /* {{{ [Routers] - Definitions */
 
 // token: Get JWT token
+
+// @Tags Client
+// @Summary Get authorize token of client
+// @Description 通过client的身份（登录）获取认证信息，包括access_token和refresh_token两个jwt
+// @ID ClientPostToken
+// @Produce json
+// @Param data body request.ClientPostToken true "Input information"
+// @Success 201 {object} response.ClientPostToken
+// @Failure 422 string message
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Failure 401 {object} nil
+// @Router /client/token [post]
 func (h *Client) token(c *fiber.Ctx) error {
 	var req request.ClientPostToken
 	err := c.BodyParser(&req)
@@ -158,6 +172,16 @@ func (h *Client) token(c *fiber.Ctx) error {
 }
 
 // refresh: Refresh JWT token
+
+// @Tags Client
+// @Summary Refresh access_token via refresh_token
+// @Description 使用refresh_token获取新的access_token，避免客户端重复登录
+// @ID ClientPostRefresh
+// @Produce json
+// @Success 201 {object} response.ClientPostRefresh
+// @Failure 401 {object} nil
+// @Failure 500 {object} nil
+// @Router /client/refresh [post]
 func (h *Client) refresh(c *fiber.Ctx) error {
 	auth := c.Get("Authorization")
 	if len(auth) < 8 || strings.ToLower(auth[0:7]) != "bearer " {
@@ -203,16 +227,57 @@ func (h *Client) refresh(c *fiber.Ctx) error {
 		AccessExpiry: jwt.Expiry,
 		TokenType:    "bearer",
 	})
+	resp.Status = fiber.StatusCreated
 
-	return c.JSON(resp)
+	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 
 // changePassword: Change password
+
+// @Tags Client
+// @Summary Change password
+// @Description 修改登录密码
+// @ID ClientPutPassword
+// @Produce json
+// @Param data body request.ClientPutPassword true "input information"
+// @Success 200 {object} response.ClientPutPassword
+// @Failure 422 string message
+// @Failure 400 {object} nil
+// @Failure 401 {object} nil
+// @Failure 500 {object} nil
+// @Router /client/password [put]
 func (h *Client) changePassword(c *fiber.Ctx) error {
 	return nil
 }
 
+// changePaymentPassword: Change payment password
+
+// @Tags Client
+// @Summary Change payment password
+// @Description 修改支付密码（6位数字）
+// @ID ClientPutPaymentPassword
+// @Produce json
+// @Param data body request.ClientPutPaymentPassword true "input information"
+// @Success 200 {object} response.ClientPutPaymentPassword
+// @Failure 422 string message
+// @Failure 400 {object} nil
+// @Failure 401 {object} nil
+// @Failure 500 {object} nil
+// @Router /client/payment-password [put]
+func (h *Client) changePaymentPassword(c *fiber.Ctx) error {
+	return nil
+}
+
 // me: Get myself
+
+// @Tags Client
+// @Summary Show me
+// @Description 解析access_token，返回当前验证者信息（脱敏）
+// @ID ClientGetMe
+// @Produce json
+// @Success 200 {object} nil
+// @Failure 500 {object} nil
+// @Router /client/me [get]
 func (h *Client) me(c *fiber.Ctx) error {
 	user, ok := c.Locals("user").(*jwt.Token)
 	if !ok {
@@ -230,6 +295,17 @@ func (h *Client) me(c *fiber.Ctx) error {
 }
 
 // credential: Get information for QR render
+
+// @Tags Client
+// @Summary Get credential
+// @Description 获取客户签名（二维码、付款码），默认5分钟有效期，签名内信息AES加密。URL后缀?img=true，生成512x512像素的png图片（二维码）
+// @ID ClientGetCredential
+// @Produce json
+// @Success 200 {object} nil
+// @Success 200 string png
+// @Failure 400 {object} nil
+// @Failure 500 {object} nil
+// @Router /client/credential [get]
 func (h *Client) credential(c *fiber.Ctx) error {
 	id, _ := c.Locals("AuthID").(string)
 	t, _ := c.Locals("AuthType").(string)
@@ -249,7 +325,7 @@ func (h *Client) credential(c *fiber.Ctx) error {
 		resp.Message = response.MsgEncodeFailed
 		resp.Status = fiber.StatusInternalServerError
 
-		runtime.Logger.Errorf("AES crypt failed : %s", err.Error())
+		runtime.Logger.Errorf("AES crypt failed : %s", err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(resp)
 	}

@@ -57,7 +57,7 @@ func (m *Card) Create(ctx context.Context) error {
 	if err == nil {
 		runtime.Logger.Infof("card [%s] created", m.ID)
 	} else {
-		runtime.Logger.Errorf("create card failed : %s", err.Error())
+		runtime.Logger.Errorf("create card failed : %s", err)
 	}
 
 	return err
@@ -65,17 +65,33 @@ func (m *Card) Create(ctx context.Context) error {
 
 // Get: gets card
 func (m *Card) Get(ctx context.Context) error {
-	err := runtime.DB.NewSelect().
-		Model(m).
-		Where("id = ?", m.ID).
-		Where("owner_id = ?", m.OwnerID).
-		Where("owner_type = ?", m.OwnerType).
-		Scan(ctx)
+	sq := runtime.DB.NewSelect().Model(m)
+	if m.ID != "" {
+		sq = sq.Where("id = ?", m.ID)
+	}
+
+	if m.OwnerID != "" {
+		sq = sq.Where("owner_id = ?", m.OwnerID)
+	}
+
+	if m.OwnerType != "" {
+		sq = sq.Where("owner_type = ?", m.OwnerType)
+	}
+
+	if m.Number != "" {
+		sq = sq.Where("number = ?", m.Number)
+	}
+
+	if m.CardType != "" {
+		sq = sq.Where("card_type = ?", m.CardType)
+	}
+
+	err := sq.Limit(1).Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			runtime.Logger.Warnf("card does not exists")
 		} else {
-			runtime.Logger.Errorf("get card failed: %s", err.Error())
+			runtime.Logger.Errorf("get card failed: %s", err)
 		}
 	}
 
@@ -85,11 +101,24 @@ func (m *Card) Get(ctx context.Context) error {
 // List: list card by given conditoins
 func (m *Card) List(ctx context.Context) ([]*Card, error) {
 	var cards []*Card
-	err := runtime.DB.NewSelect().
-		Model(&cards).
-		Where("owner_id = ?", m.OwnerID).
-		Where("owner_type = ?", m.OwnerType).
-		Scan(ctx)
+	sq := runtime.DB.NewSelect().Model(&cards)
+	if m.OwnerID != "" {
+		sq = sq.Where("owner_id = ?", m.OwnerID)
+	}
+
+	if m.OwnerType != "" {
+		sq = sq.Where("owner_type = ?", m.OwnerType)
+	}
+
+	if m.Number != "" {
+		sq = sq.Where("number = ?", m.Number)
+	}
+
+	if m.CardType != "" {
+		sq = sq.Where("card_type = ?", m.CardType)
+	}
+
+	err := sq.Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return cards, nil
@@ -119,10 +148,45 @@ func (m *Card) Delete(ctx context.Context) error {
 			runtime.Logger.Infof("card [%s] deleted", m.ID)
 		}
 	} else {
-		runtime.Logger.Errorf("card [%s] delete failed : %s", m.ID, err.Error())
+		runtime.Logger.Errorf("card [%s] delete failed : %s", m.ID, err)
 	}
 
 	return err
+}
+
+// Update: updates card
+func (m *Card) Update(ctx context.Context) error {
+	uq := runtime.DB.NewUpdate().Model(m).Set("update_at = CURRENT_TIMESTAMP")
+	if m.Holder != "" {
+		uq = uq.Set("holder = ?", m.Holder)
+	}
+
+	if m.Expiration != "" {
+		uq = uq.Set("expiration = ?", m.Expiration)
+	}
+
+	if m.CVV != "" {
+		uq = uq.Set("cvv = ?", m.CVV)
+	}
+
+	if m.ID != "" {
+		uq = uq.Where("id = ?", m.ID)
+	}
+
+	if m.OwnerID != "" {
+		uq = uq.Where("owner_id = ?", m.OwnerID)
+	}
+
+	if m.OwnerType != "" {
+		uq = uq.Where("owner_type = ?", m.OwnerType)
+	}
+
+	_, err := uq.Returning("").Exec(ctx)
+	if err != nil {
+		runtime.Logger.Errorf("Update card failed : %s", err)
+	}
+
+	return nil
 }
 
 // Debug
