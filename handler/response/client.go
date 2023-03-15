@@ -19,6 +19,7 @@ const (
 	CodeClientWrongPassword        = 10401002
 	CodeClientInvalidAuthorization = 10401010
 	CodeClientGetError             = 10500001
+	CodeClientCreateError          = 10500002
 )
 
 const (
@@ -26,6 +27,7 @@ const (
 	MsgClientWrongPassword        = "Wrong client password"
 	MsgClientInvalidAuthorization = "Invalid authorization information"
 	MsgClientGetError             = "Get client from database error"
+	MsgClientCreateError          = "Create client error"
 )
 
 /* }}} */
@@ -51,6 +53,8 @@ type ClientPutPassword struct {
 type ClientPutPaymentPassword struct {
 	Changed bool `json:"changed" xml:"changed"`
 }
+
+type ClientPut struct{}
 
 type ClientGetMe struct {
 	ID    string `json:"id" xml:"id"`

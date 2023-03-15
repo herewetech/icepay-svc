@@ -14,9 +14,7 @@
 package handler
 
 import (
-	"crypto/sha512"
 	"errors"
-	"fmt"
 	"icepay-svc/handler/request"
 	"icepay-svc/handler/response"
 	"icepay-svc/model"
@@ -48,8 +46,8 @@ func InitClient() *Client {
 		SuccessHandler: jwtSuccessHandler,
 		ErrorHandler:   jwtErrorHandler,
 	}))
-	clientG.Put("/password", h.changePassword).Name("ClientPutPassword")
-	clientG.Put("/payment-password", h.changePaymentPassword).Name("ClientPutPaymentPassword")
+	clientG.Put("/", h.update).Name("ClientPut")
+	//clientG.Put("/payment-password", h.changePaymentPassword).Name("ClientPutPaymentPassword")
 	clientG.Get("/me", h.me).Name("ClientGetMe")
 
 	clientG.Get("/credential", h.credential).Name("ClientGetCredential")
@@ -71,70 +69,26 @@ func InitClient() *Client {
 // @Produce json
 // @Param data body request.ClientPostToken true "Input information"
 // @Success 201 {object} response.ClientPostToken
-// @Failure 422 string message
 // @Failure 400 {object} nil
 // @Failure 500 {object} nil
 // @Failure 401 {object} nil
 // @Router /client/token [post]
 func (h *Client) token(c *fiber.Ctx) error {
-	var req request.ClientPostToken
-	err := c.BodyParser(&req)
-	if err != nil {
-		runtime.Logger.Warnf("parse request body failed: %s", err)
-		c.SendStatus(fiber.StatusBadRequest)
-
-		return err
+	var (
+		errResp *utils.Envelope
+		clt     *model.Client
+	)
+	idToken := c.Get("Authorization")
+	if idToken != "" {
+		// Firebase authorization
+		errResp, clt = h.tokenFirebase(c, idToken)
+	} else {
+		// Normal login
+		errResp, clt = h.tokenNormal(c)
 	}
 
-	if req.Email == "" || req.Password == "" {
-		resp := utils.WrapResponse(nil)
-		resp.Status = fiber.StatusBadRequest
-		resp.Code = response.CodeInvalidEmailOrPassword
-		resp.Message = response.MsgInvalidEmailOrPassword
-
-		return c.Status(fiber.StatusBadRequest).JSON(resp)
-	}
-
-	clt := &model.Client{
-		Email: req.Email,
-	}
-	err = clt.Get(c.Context())
-	if err != nil {
-		resp := utils.WrapResponse(nil)
-		resp.Status = fiber.StatusInternalServerError
-		resp.Code = response.CodeClientGetError
-		resp.Message = response.MsgClientGetError
-
-		return c.Status(fiber.StatusInternalServerError).JSON(resp)
-	}
-
-	if clt.ID == "" {
-		// Client not exists
-		runtime.Logger.Warnf("try to fetch a nonexistent client of email [%s]", clt.Email)
-
-		resp := utils.WrapResponse(nil)
-		resp.Status = fiber.StatusUnauthorized
-		resp.Code = response.CodeClientDoesNotExists
-		resp.Message = response.MsgClientDoesNotExists
-
-		return c.Status(fiber.StatusUnauthorized).JSON(resp)
-	}
-
-	// Check password
-	hash := sha512.New()
-	hash.Write([]byte(req.Password))
-	hash.Write([]byte(clt.Salt))
-	hash.Write([]byte(clt.Email))
-	check := fmt.Sprintf("%02x", hash.Sum(nil))
-	if check != clt.Password {
-		runtime.Logger.Warnf("wrong password given for cleitn [%s]", clt.Email)
-
-		resp := utils.WrapResponse(nil)
-		resp.Status = fiber.StatusUnauthorized
-		resp.Code = response.CodeClientWrongPassword
-		resp.Message = response.MsgClientWrongPassword
-
-		return c.Status(fiber.StatusUnauthorized).JSON(resp)
+	if errResp != nil {
+		return c.Status(errResp.Status).JSON(errResp)
 	}
 
 	// AccessToken
@@ -168,7 +122,116 @@ func (h *Client) token(c *fiber.Ctx) error {
 		TokenType:     "bearer",
 	})
 
+	if clt.Phone == "" {
+		resp.Status = fiber.StatusIMUsed
+		c = c.Status(fiber.StatusIMUsed)
+	} else {
+		resp.Status = fiber.StatusCreated
+		c = c.Status(fiber.StatusCreated)
+	}
+
 	return c.JSON(resp)
+}
+
+func (h *Client) tokenNormal(c *fiber.Ctx) (*utils.Envelope, *model.Client) {
+	resp := utils.WrapResponse(nil)
+	var req request.ClientPostToken
+	err := c.BodyParser(&req)
+	if err != nil {
+		runtime.Logger.Warnf("parse request body failed: %s", err)
+
+		resp.Status = fiber.StatusBadRequest
+		resp.Message = err.Error()
+
+		return resp, nil
+	}
+
+	if req.Email == "" || req.Password == "" {
+		resp.Status = fiber.StatusBadRequest
+		resp.Code = response.CodeInvalidEmailOrPassword
+		resp.Message = response.MsgInvalidEmailOrPassword
+
+		return resp, nil
+	}
+
+	clt := &model.Client{
+		Email: req.Email,
+	}
+	err = clt.Get(c.Context())
+	if err != nil {
+		resp.Status = fiber.StatusInternalServerError
+		resp.Code = response.CodeClientGetError
+		resp.Message = response.MsgClientGetError
+
+		return resp, nil
+	}
+
+	if clt.ID == "" {
+		// Client not exists
+		runtime.Logger.Warnf("try to fetch a nonexistent client of email [%s]", clt.Email)
+
+		resp.Status = fiber.StatusUnauthorized
+		resp.Code = response.CodeClientDoesNotExists
+		resp.Message = response.MsgClientDoesNotExists
+
+		return resp, nil
+	}
+
+	// Check password
+	check := utils.EncryptPassword(req.Password, clt.Salt, clt.Email)
+	if check != clt.Password {
+		runtime.Logger.Warnf("wrong password given for cleitn [%s]", clt.Email)
+
+		resp.Status = fiber.StatusUnauthorized
+		resp.Code = response.CodeClientWrongPassword
+		resp.Message = response.MsgClientWrongPassword
+
+		return resp, nil
+	}
+
+	return nil, clt
+}
+
+func (h *Client) tokenFirebase(c *fiber.Ctx, idToken string) (*utils.Envelope, *model.Client) {
+	ctx := c.Context()
+	resp := utils.WrapResponse(nil)
+	claims, err := h.svcAuth.FirebaseAuth(ctx, idToken)
+	if err != nil {
+		runtime.Logger.Errorf("Authenticate with firebase failed : %s", err)
+
+		resp.Status = fiber.StatusInternalServerError
+		resp.Code = response.CodeFirebaseFailed
+		resp.Message = response.MsgFirebaseFailed
+
+		return resp, nil
+	}
+
+	// Check existing
+	clt := &model.Client{}
+	clt.Email, _ = claims["email"].(string)
+	err = clt.Get(ctx)
+	if err != nil {
+		resp.Status = fiber.StatusInternalServerError
+		resp.Code = response.CodeClientGetError
+		resp.Message = response.MsgClientGetError
+
+		return resp, nil
+	}
+
+	if clt.ID == "" {
+		// Create new client
+		clt.Name, _ = claims["name"].(string)
+		err = clt.Create(ctx)
+		if err != nil {
+			resp.Status = fiber.StatusInternalServerError
+			resp.Code = response.CodeClientCreateError
+			resp.Message = response.MsgClientCreateError
+
+			return resp, nil
+		}
+	}
+
+	return nil, clt
 }
 
 // refresh: Refresh JWT token
@@ -232,24 +295,25 @@ func (h *Client) refresh(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(resp)
 }
 
-// changePassword: Change password
+// update: Update client
 
 // @Tags Client
-// @Summary Change password
-// @Description 修改登录密码
-// @ID ClientPutPassword
+// @Summary Update client
+// @Description 更新client
+// @ID ClientPut
 // @Produce json
-// @Param data body request.ClientPutPassword true "input information"
-// @Success 200 {object} response.ClientPutPassword
+// @Param data body request.ClientPut true "input information"
+// @Success 200 {object} response.ClientPut
 // @Failure 422 string message
 // @Failure 400 {object} nil
 // @Failure 401 {object} nil
 // @Failure 500 {object} nil
 // @Router /client/password [put]
-func (h *Client) changePassword(c *fiber.Ctx) error {
+func (h *Client) update(c *fiber.Ctx) error {
 	return nil
 }
 
+/*
 // changePaymentPassword: Change payment password
 
 // @Tags Client
@@ -267,6 +331,7 @@ func (h *Client) changePassword(c *fiber.Ctx) error {
 func (h *Client) changePaymentPassword(c *fiber.Ctx) error {
 	return nil
 }
+*/
 
 // me: Get myself
 

@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"icepay-svc/runtime"
+	"icepay-svc/utils"
 	"time"
 
 	"github.com/google/uuid"
@@ -46,7 +47,25 @@ func (m *Client) Create(ctx context.Context) error {
 		m.ID = uuid.NewString()
 	}
 
-	_, err := runtime.DB.NewInsert().Model(m).Exec(ctx)
+	if m.Salt == "" {
+		// Generate random salt
+	}
+
+	if m.Password == "" {
+		m.Password = "__NOT_SET__"
+	} else {
+		// Encrypt
+		m.Password = utils.EncryptPassword(m.Password, m.Salt, m.Email)
+	}
+
+	if m.PaymentPassword == "" {
+		m.PaymentPassword = "__NOT_SET__"
+	} else {
+		// Encrypt
+		m.PaymentPassword = utils.EncryptPaymentPassword(m.PaymentPassword, m.Salt, m.Email)
+	}
+
+	_, err := runtime.DB.NewInsert().Model(m).Returning("").Exec(ctx)
 	if err == nil {
 		runtime.Logger.Infof("client [%s] created", m.ID)
 	} else {
@@ -77,6 +96,11 @@ func (m *Client) Get(ctx context.Context) error {
 	}
 
 	return err
+}
+
+// Update: updates client
+func (m *Client) Update(ctx context.Context) error {
+	return nil
 }
 
 // Debug

@@ -47,24 +47,44 @@ type mainConfig struct {
 		CredentialLifetime int64  `json:"credential_lifetime" mapstructure:"credential_lifetime"` // In minute
 		AESKey             string `json:"aes_key" mapstructure:"aes_key"`
 	} `json:"security" mapstructure:"security"`
+	Firebase struct {
+		Credentials struct {
+			Type                    string `json:"id" mapstructure:"id"`
+			ProjectID               string `json:"project_id" mapstructure:"project_id"`
+			PrivateKeyID            string `json:"private_key_id" mapstructure:"private_key_id"`
+			PrivateKey              string `json:"private_key" mapstructure:"private_key"`
+			ClientEmail             string `json:"client_email" mapstructure:"client_email"`
+			ClientID                string `json:"client_id" mapstructure:"client_id"`
+			AuthURL                 string `json:"auth_url" mapstructure:"auth_url"`
+			TokenURL                string `json:"token_url" mapstructure:"token_url"`
+			AuthProviderX509CertURL string `json:"auth_provider_x509_cert_url" mapstructure:"auth_provider_x509_cert_url"`
+			ClientX509CertURL       string `json:"client_x509_cert_url" mapstructure:"client_x509_cert_url"`
+		} `json:"credentials" mapstructure:"credentials"`
+		CredentialsFile string `json:"credentials_file" mapstructure:"credentials_file"`
+	} `json:"firebase" mapstructure:"firebase"`
 	Debug bool `json:"debug" mapstructure:"debug"`
 }
 
 var Config mainConfig
 
 var defaultConfigs = map[string]interface{}{
-	"http.listen_addr":             ":9900",
-	"http.prefork":                 false,
-	"http.long_polling_timeout":    30,
-	"database.dsn":                 "postgres://icepay@localhost:5432/icepay?sslmode=disable",
-	"nats.url":                     nats.DefaultURL,
-	"auth.jwt_access_secret":       "access_secret",
-	"auth.jwt_refresh_secret":      "refresh_secret",
-	"auth.jwt_access_expiry":       10,
-	"auth.jwt_refresh_expiry":      43200,
-	"security.aes_key":             "icepay@@20130920",
-	"security.credential_lifetime": 5,
-	"debug":                        true,
+	"http.listen_addr":                                 ":9900",
+	"http.prefork":                                     false,
+	"http.long_polling_timeout":                        30,
+	"database.dsn":                                     "postgres://icepay@localhost:5432/icepay?sslmode=disable",
+	"nats.url":                                         nats.DefaultURL,
+	"auth.jwt_access_secret":                           "access_secret",
+	"auth.jwt_refresh_secret":                          "refresh_secret",
+	"auth.jwt_access_expiry":                           10,
+	"auth.jwt_refresh_expiry":                          43200,
+	"security.aes_key":                                 "icepay@@20130920",
+	"security.credential_lifetime":                     5,
+	"firebase.credentials.type":                        "service_account",
+	"firebase.credentials.auth_url":                    "https://accounts.google.com/o/oauth2/auth",
+	"firebase.credentials.token_url":                   "https://oauth2.googleapis.com/token",
+	"firebase.credentials.auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+	"filebase.credentials_file":                        "./firebase.json",
+	"debug":                                            true,
 }
 
 func LoadConfig() error {

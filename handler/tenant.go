@@ -14,9 +14,7 @@
 package handler
 
 import (
-	"crypto/sha512"
 	"errors"
-	"fmt"
 	"icepay-svc/handler/request"
 	"icepay-svc/handler/response"
 	"icepay-svc/model"
@@ -114,11 +112,7 @@ func (h *Tenant) token(c *fiber.Ctx) error {
 	}
 
 	// Check password
-	hash := sha512.New()
-	hash.Write([]byte(req.Password))
-	hash.Write([]byte(tnt.Salt))
-	hash.Write([]byte(tnt.Email))
-	check := fmt.Sprintf("%02x", hash.Sum(nil))
+	check := utils.EncryptPassword(req.Password, tnt.Salt, tnt.Email)
 	if check != tnt.Password {
 		runtime.Logger.Warnf("wrong password given for tenant [%s]", tnt.Email)
 

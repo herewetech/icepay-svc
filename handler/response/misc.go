@@ -5,7 +5,7 @@
  */
 
 /**
- * @file client.go
+ * @file misc.go
  * @package response
  * @author Dr.NP <np@herewe.tech>
  * @since 02/27/2023
@@ -22,6 +22,7 @@ const (
 	CodeAuthInformationMissing = 20401404
 	CodeEncodeFailed           = 20500001
 	CodeDecodeFailed           = 20500002
+	CodeFirebaseFailed         = 20500010
 	CodeTargetNotFound         = 20404001
 	CodeTimeout                = 20408001
 )
@@ -34,6 +35,7 @@ const (
 	MsgAuthInformationMissing = "Authorization information missing"
 	MsgEncodeFailed           = "Encode failed"
 	MsgDecodeFailed           = "Decode failed"
+	MsgFirebaseFailed         = "Firebase failed"
 	MsgTargetNotFound         = "Target not found"
 	MsgTimeout                = "Timeout"
 )

@@ -16,6 +16,8 @@ package utils
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/sha512"
+	"fmt"
 )
 
 func AESCrypt(input, key []byte) ([]byte, error) {
@@ -46,6 +48,24 @@ func AESDecrypt(input, key []byte) ([]byte, error) {
 	stream.CryptBlocks(output, input)
 
 	return output, nil
+}
+
+func EncryptPassword(plainText, salt, ident string) string {
+	hash := sha512.New()
+	hash.Write([]byte(plainText))
+	hash.Write([]byte(salt))
+	hash.Write([]byte(ident))
+
+	return fmt.Sprintf("%02x", hash.Sum(nil))
+}
+
+func EncryptPaymentPassword(plainText, salt, ident string) string {
+	hash := sha512.New()
+	hash.Write([]byte(ident))
+	hash.Write([]byte(salt))
+	hash.Write([]byte(plainText))
+
+	return fmt.Sprintf("%02x", hash.Sum(nil))
 }
 
 /*

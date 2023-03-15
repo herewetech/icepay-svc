@@ -30,6 +30,15 @@ type ClientPutPaymentPassword struct {
 	NewPassword string `json:"new_password" xml:"new_password"`
 }
 
+type ClientPut struct {
+	Name               string `json:"name" xml:"name"`
+	Phone              string `json:"phone" xml:"phone"`
+	OldPassword        string `json:"old_password" xml:"old_password"`
+	NewPassword        string `json:"new_password" xml:"new_password"`
+	OldPaymentPassword string `json:"old_payment_password" xml:"old_payment_password"`
+	NewPaymentPassword string `json:"new_payment_password" xml:"new_payment_password"`
+}
+
 /*
  * Local variables:
  * tab-width: 4
