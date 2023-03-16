@@ -14,6 +14,7 @@
 package utils
 
 import (
+	"math/rand"
 	"strconv"
 	"strings"
 	"unicode"
@@ -85,6 +86,17 @@ func ValidCardNumber(number string) string {
 	}
 
 	return CardInvalid
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func RandomString(length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+
+	return string(b)
 }
 
 /*

@@ -69,6 +69,7 @@ func InitClient() *Client {
 // @Produce json
 // @Param data body request.ClientPostToken true "Input information"
 // @Success 201 {object} response.ClientPostToken
+// @Success 226 {object} response.ClientPostToken
 // @Failure 400 {object} nil
 // @Failure 500 {object} nil
 // @Failure 401 {object} nil

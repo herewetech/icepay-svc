@@ -49,6 +49,7 @@ func (m *Client) Create(ctx context.Context) error {
 
 	if m.Salt == "" {
 		// Generate random salt
+		m.Salt = utils.RandomString(32)
 	}
 
 	if m.Password == "" {
@@ -100,7 +101,31 @@ func (m *Client) Get(ctx context.Context) error {
 
 // Update: updates client
 func (m *Client) Update(ctx context.Context) error {
-	return nil
+	uq := runtime.DB.NewUpdate().Model(m).Where("id = ?", m.ID)
+	if m.Phone != "" {
+		uq = uq.Set("phone = ?", m.Phone)
+	}
+
+	if m.Name != "" {
+		uq = uq.Set("name = ?", m.Name)
+	}
+
+	if m.Password != "" {
+		uq = uq.Set("password = ?", utils.EncryptPassword(m.Password, m.Salt, m.Email))
+	}
+
+	if m.PaymentPassword != "" {
+		uq = uq.Set("payment_password = ?", utils.EncryptPaymentPassword(m.PaymentPassword, m.Salt, m.Email))
+	}
+
+	_, err := uq.Returning("").Exec(ctx)
+	if err == nil {
+		runtime.Logger.Infof("client [%s] updated", m.ID)
+	} else {
+		runtime.Logger.Errorf("update client failed : %s", err)
+	}
+
+	return err
 }
 
 // Debug

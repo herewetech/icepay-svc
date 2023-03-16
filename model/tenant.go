@@ -17,8 +17,10 @@ import (
 	"context"
 	"encoding/json"
 	"icepay-svc/runtime"
+	"icepay-svc/utils"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -40,7 +42,22 @@ type Tenant struct {
 
 // Create: creates client
 func (m *Tenant) Create(ctx context.Context) error {
-	_, err := runtime.DB.NewInsert().Model(m).Exec(ctx)
+	if m.ID == "" {
+		m.ID = uuid.NewString()
+	}
+
+	if m.Salt == "" {
+		m.Salt = utils.RandomString(32)
+	}
+
+	if m.Password == "" {
+		m.Password = "__NOT_SET__"
+	} else {
+		// Encrypt
+		m.Password = utils.EncryptPassword(m.Password, m.Salt, m.Email)
+	}
+
+	_, err := runtime.DB.NewInsert().Model(m).Returning("").Exec(ctx)
 	if err == nil {
 		runtime.Logger.Infof("tenent [%s] created", m.ID)
 	} else {
@@ -68,6 +85,31 @@ func (m *Tenant) Get(ctx context.Context) error {
 	err := sq.Limit(1).Scan(ctx)
 	if err != nil {
 		runtime.Logger.Errorf("get tenent failed : %s", err)
+	}
+
+	return err
+}
+
+// Update: updates tenant
+func (m *Tenant) Update(ctx context.Context) error {
+	uq := runtime.DB.NewUpdate().Model(m).Where("id = ?", m.ID)
+	if m.Phone != "" {
+		uq = uq.Set("phone = ?", m.Phone)
+	}
+
+	if m.Name != "" {
+		uq = uq.Set("name = ?", m.Name)
+	}
+
+	if m.Password != "" {
+		uq = uq.Set("password = ?", utils.EncryptPassword(m.Password, m.Salt, m.Email))
+	}
+
+	_, err := uq.Returning("").Exec(ctx)
+	if err == nil {
+		runtime.Logger.Infof("client [%s] updated", m.ID)
+	} else {
+		runtime.Logger.Errorf("update client failed : %s", err)
 	}
 
 	return err
