@@ -150,7 +150,7 @@ func (h *Payment) add(c *fiber.Ctx) error {
 // @Tags Payment
 // @Summary Update payment status
 // @Description 更新支付订单状态（确认支付或放弃）
-// @ID PaymentPost
+// @ID PaymentPut
 // @Produce json
 // @Param data body request.PaymentPut true "input information"
 // @Success 200 {object} response.PaymentPut
