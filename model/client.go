@@ -15,6 +15,7 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"icepay-svc/runtime"
 	"icepay-svc/utils"
@@ -92,7 +93,7 @@ func (m *Client) Get(ctx context.Context) error {
 	}
 
 	err := sq.Limit(1).Scan(ctx)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		runtime.Logger.Errorf("get client failed : %s", err)
 	}
 

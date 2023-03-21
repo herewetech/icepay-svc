@@ -14,6 +14,7 @@
 package handler
 
 import (
+	"database/sql"
 	"errors"
 	"icepay-svc/handler/request"
 	"icepay-svc/handler/response"
@@ -211,7 +212,7 @@ func (h *Client) tokenFirebase(c *fiber.Ctx, idToken string) (*utils.Envelope, *
 	clt := &model.Client{}
 	clt.Email, _ = claims["email"].(string)
 	err = clt.Get(ctx)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		resp.Status = fiber.StatusInternalServerError
 		resp.Code = response.CodeClientGetError
 		resp.Message = response.MsgClientGetError

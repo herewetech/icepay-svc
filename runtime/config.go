@@ -83,7 +83,7 @@ var defaultConfigs = map[string]interface{}{
 	"firebase.credentials.auth_url":                    "https://accounts.google.com/o/oauth2/auth",
 	"firebase.credentials.token_url":                   "https://oauth2.googleapis.com/token",
 	"firebase.credentials.auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-	"filebase.credentials_file":                        "./firebase.json",
+	"firebase.credentials_file":                        "./firebase.json",
 	"debug":                                            true,
 }
 

@@ -49,6 +49,7 @@ func NewAuth() *Auth {
 		runtime.Logger.Fatal(err)
 	}
 
+	runtime.Logger.Infof("firebase app initialized with credentials file <%s>", runtime.Config.Firebase.CredentialsFile)
 	s.firebaseApp = fa
 
 	return s
