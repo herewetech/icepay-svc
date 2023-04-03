@@ -4,19 +4,19 @@ go 1.20
 
 require (
 	github.com/gofiber/contrib/fiberzap v1.0.2
-	github.com/swaggo/swag v1.8.10
-	github.com/urfave/cli/v2 v2.25.0
+	github.com/swaggo/swag v1.8.12
+	github.com/urfave/cli/v2 v2.25.1
 	google.golang.org/api v0.114.0
 )
 
 require (
 	cloud.google.com/go v0.110.0 // indirect
-	cloud.google.com/go/compute v1.18.0 // indirect
+	cloud.google.com/go/compute v1.19.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/firestore v1.9.0 // indirect
 	cloud.google.com/go/iam v0.13.0 // indirect
 	cloud.google.com/go/longrunning v0.4.1 // indirect
-	cloud.google.com/go/storage v1.30.0 // indirect
+	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/MicahParks/keyfunc v1.9.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
@@ -46,7 +46,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
-	github.com/swaggo/files v1.0.1 // indirect
+	github.com/swaggo/files/v2 v2.0.0 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
@@ -62,8 +62,8 @@ require (
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/appengine/v2 v2.0.2 // indirect
-	google.golang.org/genproto v0.0.0-20230320184635-7606e756e683 // indirect
-	google.golang.org/grpc v1.53.0 // indirect
+	google.golang.org/genproto v0.0.0-20230331144136-dcfb400f0633 // indirect
+	google.golang.org/grpc v1.54.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -73,16 +73,16 @@ require (
 require (
 	firebase.google.com/go/v4 v4.10.0
 	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/gofiber/fiber/v2 v2.42.0
-	github.com/gofiber/jwt/v3 v3.3.6
-	github.com/gofiber/swagger v0.1.9
+	github.com/gofiber/fiber/v2 v2.43.0
+	github.com/gofiber/jwt/v3 v3.3.7
+	github.com/gofiber/swagger v0.1.10
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.3.0
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
-	github.com/nats-io/nats.go v1.24.0
+	github.com/nats-io/nats.go v1.25.0
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/uniseg v0.4.4 // indirect
@@ -98,7 +98,7 @@ require (
 	github.com/valyala/fasthttp v1.45.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0
 	golang.org/x/sys v0.6.0 // indirect
 )

@@ -19,6 +19,7 @@ const (
 	CodeTenantWrongPassword        = 11401002
 	CodeTenantInvalidAuthorization = 11401010
 	CodeTenantGetError             = 11500001
+	CodeTenantCreateError          = 11500002
 )
 
 const (
@@ -26,6 +27,7 @@ const (
 	MsgTenantWrongPassword        = "Wrong tenant password"
 	MsgTenantInvalidAuthorization = "Invalid authorization information"
 	MsgTenantGetError             = "Get tenant from database error"
+	MsgTenantCreateError          = "Create tenant error"
 )
 
 /* }}} */

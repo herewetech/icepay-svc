@@ -14,6 +14,7 @@
 package handler
 
 import (
+	"database/sql"
 	"errors"
 	"icepay-svc/handler/request"
 	"icepay-svc/handler/response"
@@ -69,59 +70,21 @@ func InitTenant() *Tenant {
 // @Failure 401 {object} nil
 // @Router /tenant/token [post]
 func (h *Tenant) token(c *fiber.Ctx) error {
-	var req request.TenantPostToken
-	err := c.BodyParser(&req)
-	if err != nil {
-		runtime.Logger.Warnf("parse request body failed: %s", err)
-
-		return err
+	var (
+		errResp *utils.Envelope
+		tnt     *model.Tenant
+	)
+	idToken := c.Get("Authorization")
+	if idToken != "" {
+		// Firebase authorization
+		errResp, tnt = h.tokenFirebase(c, idToken)
+	} else {
+		// Normal login
+		errResp, tnt = h.tokenNormal(c)
 	}
 
-	if req.Email == "" || req.Password == "" {
-		resp := utils.WrapResponse(nil)
-		resp.Status = fiber.StatusBadRequest
-		resp.Code = response.CodeInvalidEmailOrPassword
-		resp.Message = response.MsgInvalidEmailOrPassword
-
-		return c.Status(fiber.StatusBadRequest).JSON(resp)
-	}
-
-	tnt := &model.Tenant{
-		Email: req.Email,
-	}
-	err = tnt.Get(c.Context())
-	if err != nil {
-		resp := utils.WrapResponse(nil)
-		resp.Status = fiber.StatusInternalServerError
-		resp.Code = response.CodeTenantGetError
-		resp.Message = response.MsgTenantGetError
-
-		return c.Status(fiber.StatusInternalServerError).JSON(resp)
-	}
-
-	if tnt.ID == "" {
-		// Client not exists
-		runtime.Logger.Warnf("try to fetch a nonexistent tenant of email [%s]", tnt.Email)
-
-		resp := utils.WrapResponse(nil)
-		resp.Status = fiber.StatusUnauthorized
-		resp.Code = response.CodeTenantDoesNotExists
-		resp.Message = response.MsgTenantDoesNotExists
-
-		return c.Status(fiber.StatusUnauthorized).JSON(resp)
-	}
-
-	// Check password
-	check := utils.EncryptPassword(req.Password, tnt.Salt, tnt.Email)
-	if check != tnt.Password {
-		runtime.Logger.Warnf("wrong password given for tenant [%s]", tnt.Email)
-
-		resp := utils.WrapResponse(nil)
-		resp.Status = fiber.StatusUnauthorized
-		resp.Code = response.CodeClientWrongPassword
-		resp.Message = response.MsgClientWrongPassword
-
-		return c.Status(fiber.StatusUnauthorized).JSON(resp)
+	if errResp != nil {
+		return c.Status(errResp.Status).JSON(errResp)
 	}
 
 	// AccessToken
@@ -135,7 +98,7 @@ func (h *Tenant) token(c *fiber.Ctx) error {
 	jwtRefresh, errRefresh := h.svcAuth.JWTSign(&service.Sign{
 		Sub:       tnt.ID,
 		Name:      tnt.Email,
-		Type:      "client::refresh",
+		Type:      "tenant::refresh",
 		ExpiresIn: time.Duration(runtime.Config.Auth.JWTRefreshExpiry) * time.Minute,
 	})
 	if errAccess != nil || errRefresh != nil {
@@ -155,7 +118,116 @@ func (h *Tenant) token(c *fiber.Ctx) error {
 		TokenType:     "bearer",
 	})
 
+	if tnt.Phone == "" {
+		resp.Status = fiber.StatusIMUsed
+		c = c.Status(fiber.StatusIMUsed)
+	} else {
+		resp.Status = fiber.StatusCreated
+		c = c.Status(fiber.StatusCreated)
+	}
+
 	return c.JSON(resp)
+}
+
+func (h *Tenant) tokenNormal(c *fiber.Ctx) (*utils.Envelope, *model.Tenant) {
+	resp := utils.WrapResponse(nil)
+	var req request.TenantPostToken
+	err := c.BodyParser(&req)
+	if err != nil {
+		runtime.Logger.Warnf("parse request body failed: %s", err)
+
+		resp.Status = fiber.StatusBadRequest
+		resp.Message = err.Error()
+
+		return resp, nil
+	}
+
+	if req.Email == "" || req.Password == "" {
+		resp.Status = fiber.StatusBadRequest
+		resp.Code = response.CodeInvalidEmailOrPassword
+		resp.Message = response.MsgInvalidEmailOrPassword
+
+		return resp, nil
+	}
+
+	tnt := &model.Tenant{
+		Email: req.Email,
+	}
+	err = tnt.Get(c.Context())
+	if err != nil {
+		resp.Status = fiber.StatusInternalServerError
+		resp.Code = response.CodeTenantGetError
+		resp.Message = response.MsgTenantGetError
+
+		return resp, nil
+	}
+
+	if tnt.ID == "" {
+		// Tenant not exists
+		runtime.Logger.Warnf("try to fetch a nonexistent tenant of email [%s]", tnt.Email)
+
+		resp.Status = fiber.StatusUnauthorized
+		resp.Code = response.CodeTenantDoesNotExists
+		resp.Message = response.MsgTenantDoesNotExists
+
+		return resp, nil
+	}
+
+	// Check password
+	check := utils.EncryptPassword(req.Password, tnt.Salt, tnt.Email)
+	if check != tnt.Password {
+		runtime.Logger.Warnf("wrong password given for cleitn [%s]", tnt.Email)
+
+		resp.Status = fiber.StatusUnauthorized
+		resp.Code = response.CodeTenantWrongPassword
+		resp.Message = response.MsgTenantWrongPassword
+
+		return resp, nil
+	}
+
+	return nil, tnt
+}
+
+func (h *Tenant) tokenFirebase(c *fiber.Ctx, idToken string) (*utils.Envelope, *model.Tenant) {
+	ctx := c.Context()
+	resp := utils.WrapResponse(nil)
+	claims, err := h.svcAuth.FirebaseAuth(ctx, idToken)
+	if err != nil {
+		runtime.Logger.Errorf("Authenticate with firebase failed : %s", err)
+
+		resp.Status = fiber.StatusInternalServerError
+		resp.Code = response.CodeFirebaseFailed
+		resp.Message = response.MsgFirebaseFailed
+
+		return resp, nil
+	}
+
+	// Check existing
+	tnt := &model.Tenant{}
+	tnt.Email, _ = claims["email"].(string)
+	err = tnt.Get(ctx)
+	if err != nil && err != sql.ErrNoRows {
+		resp.Status = fiber.StatusInternalServerError
+		resp.Code = response.CodeTenantGetError
+		resp.Message = response.MsgTenantGetError
+
+		return resp, nil
+	}
+
+	if tnt.ID == "" {
+		// Create new client
+		tnt.Name, _ = claims["name"].(string)
+		err = tnt.Create(ctx)
+		if err != nil {
+			resp.Status = fiber.StatusInternalServerError
+			resp.Code = response.CodeTenantCreateError
+			resp.Message = response.MsgTenantCreateError
+
+			return resp, nil
+		}
+	}
+
+	return nil, tnt
 }
 
 // refresh: Refresh JWT token
